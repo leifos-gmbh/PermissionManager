@@ -9,10 +9,26 @@ include_once './Services/UIComponent/classes/class.ilUserInterfaceHookPlugin.php
  *
  * @author  Stefan Meyer <smeyer.ilias@gmx.de>
  */
-class lfPermissionManagerPlugin extends ilUserInterfaceHookPlugin
+class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 {
-	const PLUGIN_NAME = 'lfPermissionManager';
+	private static $instance = null;
 	
+	const PLUGIN_NAME = 'PermissionManager';
+	
+	/**
+	 * Get singleton instance
+	 * @return lfPermissionManagerPlugin
+	 */
+	public static function getInstance()
+	{
+		if(self::$instance instanceof self)
+		{
+			return self::$instance;
+		}
+		return self::$instance = new self();
+	}
+
+
 	/**
 	 * Get plugin name
 	 * @return string
@@ -28,6 +44,13 @@ class lfPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 	protected function init()
 	{
 		$this->initAutoLoad();
+
+		// set configured log level
+		foreach(ilLoggerFactory::getLogger('lfpm')->getLogger()->getHandlers() as $handler)
+		{
+			$handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
+		}
+		
 	}
 
 	/**

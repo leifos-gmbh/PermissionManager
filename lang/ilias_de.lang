@@ -1,0 +1,20 @@
+tab_configure#:#Konfiguration
+form_tab_settings#:#Einstellungen
+form_rep_node#:#Startpunkt im Magazin (ref_id)
+form_rep_node_info#:#Wählen sie den Startpunkt im Magazin, unterhalb dem die folgenden Rechteänderungen durchgeführt werden sollen.
+form_type_filter#:#Objekte-Filter
+form_type_adv_filter#:#Erweiterter Objekte-Filter
+form_rolt#:#Rollenvorlage
+form_action#:#Aktion
+action_add#:#Rechte hinzufügen
+action_remove#:#Rechte entfernen
+form_action_templates#:#Rollenvorlagen anpassen
+form_role_filter#:#Rollenfilter
+btn_show_affected#:#Zeige Anzahl der zu ändernden Objekte
+table_col_type#:#Objekttyp
+table_col_num#:#Anzahl der zu ändernden Objekte
+adv_in_courses#:#nur Objekte in Kursen
+adv_in_groups#:#nur Objekte in Gruppen
+adv_outside_courses#:#nur Objekte außerhalb von Kursen
+adv_outside_courses_groups#:#nur Objekte außerhalb von Kursen/Gruppen
+table_summary_title#:#Übersicht der zu ändernenden Objekte
