@@ -209,6 +209,7 @@ class ilPermissionManagerAction
 				{
 					return false;
 				}
+				break;
 				
 			case self::ADV_TYPE_OUTSIDE_COURSES:
 				if($GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true))
@@ -219,7 +220,7 @@ class ilPermissionManagerAction
 
 			case self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS:
 				if(
-					$GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true) or 
+					$GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true) or
 					$GLOBALS['tree']->checkForParentType($a_node['child'], 'grp', true)
 				)
 				{
