@@ -133,6 +133,8 @@ class ilPermissionManagerAction
 	
 	public function doSummary()
 	{
+		$GLOBALS['tree']->useCache(false);
+		
 		$info_by_type = array();
 		// initializte $info array();
 		foreach($this->getTypeFilter() as $type)
@@ -162,16 +164,18 @@ class ilPermissionManagerAction
 		
 		foreach($GLOBALS['tree']->getChilds($a_node['child']) as $child)
 		{
-			// breadth first search
-			if($this->isHandled($child))
+			if(!$GLOBALS['objDefinition']->isContainer($child['type']))
 			{
-				if($a_mode == self::MODE_SUMMARY)
+				if($this->isHandled($child))
 				{
-					$info_by_type[$child['type']]['num']++;
-				}
-				else
-				{
-					$this->updateNode($child);
+					if($a_mode == self::MODE_SUMMARY)
+					{
+						$info_by_type[$child['type']]['num']++;
+					}
+					else
+					{
+						$this->updateNode($child);
+					}
 				}
 			}
 			
