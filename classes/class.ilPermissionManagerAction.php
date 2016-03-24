@@ -164,6 +164,11 @@ class ilPermissionManagerAction
 		
 		foreach($GLOBALS['tree']->getChilds($a_node['child']) as $child)
 		{
+			if($child['type'] == 'adm')
+			{
+				continue;
+			}
+			
 			if(!$GLOBALS['objDefinition']->isContainer($child['type']))
 			{
 				if($this->isHandled($child))
