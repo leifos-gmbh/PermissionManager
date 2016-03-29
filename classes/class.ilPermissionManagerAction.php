@@ -15,7 +15,8 @@ class ilPermissionManagerAction
 	const ADV_TYPE_IN_COURSES = 1;
 	const ADV_TYPE_IN_GROUPS = 2;
 	const ADV_TYPE_OUTSIDE_COURSES = 3;
-	const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 4;
+	const ADV_TYPE_OUTSIDE_GROUPS = 4;
+	const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 5;
 	
 	const ACTION_ADD = 1;
 	const ACTION_REMOVE = 2;
@@ -107,6 +108,7 @@ class ilPermissionManagerAction
 			self::ADV_TYPE_IN_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_in_courses'),
 			self::ADV_TYPE_IN_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_in_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses'),
+			self::ADV_TYPE_OUTSIDE_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses_groups')
 		);
 	}
@@ -133,6 +135,8 @@ class ilPermissionManagerAction
 	
 	public function doSummary()
 	{
+		$GLOBALS['tree']->useCache(false);
+		
 		$info_by_type = array();
 		// initializte $info array();
 		foreach($this->getTypeFilter() as $type)
@@ -170,16 +174,23 @@ class ilPermissionManagerAction
 		
 		foreach($GLOBALS['tree']->getChilds($a_node['child']) as $child)
 		{
-			// breadth first search
-			if($this->isHandled($child))
+			if($child['type'] == 'adm')
 			{
-				if($a_mode == self::MODE_SUMMARY)
+				continue;
+			}
+			
+			if(!$GLOBALS['objDefinition']->isContainer($child['type']))
+			{
+				if($this->isHandled($child))
 				{
-					$info_by_type[$child['type']]['num']++;
-				}
-				else
-				{
-					$this->updateNode($child);
+					if($a_mode == self::MODE_SUMMARY)
+					{
+						$info_by_type[$child['type']]['num']++;
+					}
+					else
+					{
+						$this->updateNode($child);
+					}
 				}
 			}
 			
@@ -217,6 +228,7 @@ class ilPermissionManagerAction
 				{
 					return false;
 				}
+				break;
 				
 			case self::ADV_TYPE_OUTSIDE_COURSES:
 				if($GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true))
@@ -224,10 +236,18 @@ class ilPermissionManagerAction
 					return false;
 				}
 				break;
+				
+			case self::ADV_TYPE_OUTSIDE_GROUPS:
+				if($GLOBALS['tree']->checkForParentType($a_node['child'], 'grp', true))
+				{
+					return false;
+				}
+				break;
+				
 
 			case self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS:
 				if(
-					$GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true) or 
+					$GLOBALS['tree']->checkForParentType($a_node['child'], 'crs', true) or
 					$GLOBALS['tree']->checkForParentType($a_node['child'], 'grp', true)
 				)
 				{
@@ -238,7 +258,5 @@ class ilPermissionManagerAction
 
 		return true;
 	}
-	
-	
 }
 ?>
