@@ -15,7 +15,8 @@ class ilPermissionManagerAction
 	const ADV_TYPE_IN_COURSES = 1;
 	const ADV_TYPE_IN_GROUPS = 2;
 	const ADV_TYPE_OUTSIDE_COURSES = 3;
-	const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 4;
+	const ADV_TYPE_OUTSIDE_GROUPS = 4;
+	const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 5;
 	
 	const ACTION_ADD = 1;
 	const ACTION_REMOVE = 2;
@@ -107,6 +108,7 @@ class ilPermissionManagerAction
 			self::ADV_TYPE_IN_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_in_courses'),
 			self::ADV_TYPE_IN_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_in_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses'),
+			self::ADV_TYPE_OUTSIDE_GROUPS => ilPermissionManagerAction::getInstance()->txt('adv_outside_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses_groups')
 		);
 	}
@@ -226,6 +228,14 @@ class ilPermissionManagerAction
 					return false;
 				}
 				break;
+				
+			case self::ADV_TYPE_OUTSIDE_GROUPS:
+				if($GLOBALS['tree']->checkForParentType($a_node['child'], 'grp', true))
+				{
+					return false;
+				}
+				break;
+				
 
 			case self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS:
 				if(
@@ -240,7 +250,5 @@ class ilPermissionManagerAction
 
 		return true;
 	}
-	
-	
 }
 ?>
