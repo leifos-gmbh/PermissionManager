@@ -201,7 +201,7 @@ class ilPermissionManagerAction
 				$is_handled_type = $this->isHandledType($child);
 				if($is_handled_type)
 				{
-					$info_by_type[$a_node['type']]['num']++;
+					$info_by_type[$child['type']]['num']++;
 					if($a_mode == self::MODE_UPDATE)
 					{
 						$this->updateNode($child);
