@@ -146,6 +146,14 @@ class ilPermissionManagerAction
 		return $info_by_type;
 	}
 	
+	/**
+	 * Start permission manipulation
+	 */
+	public function start()
+	{
+		
+	}
+	
 	private function walkThroughTree($a_node, $a_mode, &$info_by_type)
 	{
 		if($this->isHandled($a_node))
