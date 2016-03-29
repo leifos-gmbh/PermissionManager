@@ -30,7 +30,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 			case "actions":
 			case 'showAffected':
 			case 'listAffected':
-			case 'execute':
+			case 'performUpdate':
 				$this->$cmd();
 				break;
 
@@ -189,11 +189,13 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 	/**
 	 * Execute action
 	 */
-	protected function execute()
+	protected function performUpdate()
 	{
 		$action = ilPermissionManagerSettings::getInstance()->getAction();
-		$action->start();
+		$info = $action->start();
 		
+		ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update').' '. print_r($info,true),true);
+		$GLOBALS['ilCtrl']->redirect($this,'listAffected');
 	}
 
 }
