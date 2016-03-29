@@ -232,12 +232,12 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		if(function_exists('memory_get_peak_usage'))
 		{
 			$meminfo = ' Memory used: ';
-			$meminfo .= ((int) memory_get_peak_usage() / 1024 / 1024); 
+			$meminfo .= ((int) (memory_get_peak_usage() / 1024 / 1024)); 
 			$meminfo .= ' MB';
 		}
 		
-		ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update').$meminfo);
-		$GLOBALS['ilCtrl']->redirect($this,'listAffected');
+		ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update').$meminfo, true);
+		$GLOBALS['ilCtrl']->redirect($this,'configure');
 	}
 
 }
