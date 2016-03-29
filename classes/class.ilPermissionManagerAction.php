@@ -108,7 +108,7 @@ class ilPermissionManagerAction
 			self::ADV_TYPE_IN_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_in_courses'),
 			self::ADV_TYPE_IN_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_in_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses'),
-			self::ADV_TYPE_OUTSIDE_GROUPS => ilPermissionManagerAction::getInstance()->txt('adv_outside_groups'),
+			self::ADV_TYPE_OUTSIDE_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses_groups')
 		);
 	}
