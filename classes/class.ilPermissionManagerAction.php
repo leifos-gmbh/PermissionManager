@@ -279,7 +279,30 @@ class ilPermissionManagerAction
 	 */
 	private function updateObjectPermissions(array $node, array $role)
 	{
+		global $rbacreview, $rbacadmin;
 		
+		$operations = $rbacreview->getOperationsOfRole($this->getTemplate(),$node['type'],ROLE_FOLDER_ID);
+		ilLoggerFactory::getLogger('lfpm')->debug('Operations for type '.$node['type']);
+		ilLoggerFactory::getLogger('lfpm')->dump($operations, ilLogLevel::DEBUG);
+		
+		$active = $rbacreview->getActiveOperationsOfRole($node['child'], $role['obj_id']);
+		ilLoggerFactory::getLogger('lfpm')->debug('Active operations for '.$node['title']);
+		ilLoggerFactory::getLogger('lfpm')->dump($active, ilLogLevel::DEBUG);
+		
+		if($this->getAction() == self::ACTION_ADD)
+		{
+			$new_permissions = array_unique(array_merge($operations, $active));
+		}
+		if($this->getAction() == self::ACTION_REMOVE)
+		{
+			$new_permissions = array_diff($active, $operations);
+		}
+		
+		ilLoggerFactory::getLogger('lfpm')->debug('New operations for '.$node['title']);
+		ilLoggerFactory::getLogger('lfpm')->dump($new_permissions, ilLogLevel::DEBUG);
+		
+		$rbacadmin->revokePermission($node['child'], $role['obj_id']);
+		$rbacadmin->grantPermission($role['obj_id'], (array) $new_permissions, $node['child']);
 	}
 	
 	private function updateContainer(array $a_node)

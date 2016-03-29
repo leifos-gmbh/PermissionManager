@@ -27,6 +27,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		switch ($cmd)
 		{
 			case "configure":
+			case 'save':
 			case "actions":
 			case 'showAffected':
 			case 'listAffected':
@@ -127,22 +128,21 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$adapt_templates->setValue(1);
 		$form->addItem($adapt_templates);
 		
-
 		$role_filter = new ilTextInputGUI($this->getPluginObject()->txt('form_role_filter'), 'role_filter');
-		#$role_filter->setValue($action->getRoleFilter());
+		ilLoggerFactory::getLogger('lfpm')->dump($action->getRoleFilter(),  ilLogLevel::DEBUG);
+		$role_filter->setRequired(true);
 		$role_filter->setMulti(true);
-		$role_filter->setRequired(false);
+		$role_filter->setValue(array_shift($action->getRoleFilter()));
+		$role_filter->setMultiValues($action->getRoleFilter());
 		$form->addItem($role_filter);
-		
+
+		$form->addCommandButton('save', $GLOBALS['lng']->txt('save'));
 		$form->addCommandButton('showAffected', $this->getPluginObject()->txt('btn_show_affected'));
 		return $form;
 		
 	}
 	
-	/**
-	 * Save settings
-	 */
-	protected function showAffected()
+	protected function doSave()
 	{
 		ilLoggerFactory::getLogger('lfpm')->debug('Saving confguration options...');
 		$form = $this->initConfigurationForm();
@@ -160,13 +160,35 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 			
 			ilPermissionManagerSettings::getInstance()->setAction($action);
 			ilPermissionManagerSettings::getInstance()->update();
-			
-			$GLOBALS['ilCtrl']->redirect($this,'listAffected');
 			return true;
 		}
 		ilUtil::sendFailure($GLOBALS['lng']->txt('err_check_input'));
 		$this->configure($form);
-		return TRUE;
+		return false;
+		
+	}
+
+	protected function save()
+	{
+		if($this->doSave())
+		{
+			ilUtil::sendSuccess($GLOBALS['lng']->txt('settings_saved'),true);
+			$GLOBALS['ilCtrl']->redirect($this,'configure');
+			return true;
+		}
+	}
+	
+	/**
+	 * Save settings
+	 */
+	protected function showAffected()
+	{
+		
+		if($this->doSave())
+		{
+			$GLOBALS['ilCtrl']->redirect($this,'listAffected');
+			return true;
+		}
 	}
 	
 	
