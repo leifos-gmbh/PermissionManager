@@ -68,15 +68,15 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$form = new ilPropertyFormGUI();
 		$form->setFormAction($GLOBALS['ilCtrl']->getFormAction($this));
 		$form->setTitle($this->getPluginObject()->txt('form_tab_settings'));
+		
+		// log level
+		$GLOBALS['lng']->loadLanguageModule('log');
+		$level = new ilSelectInputGUI($this->getPluginObject()->txt('form_tab_settings_loglevel'),'log_level');
+		$level->setOptions(ilLogLevel::getLevelOptions());
+		$level->setValue(ilPermissionManagerSettings::getInstance()->getLogLevel());
+		$form->addItem($level);
+		
 
-		
-		#include_once './Services/Form/classes/class.ilRepositorySelectorInputGUI.php';
-		#$rep_node = new ilRepositorySelectorInputGUI($this->getPluginObject()->txt('form_rep_node'),'node');
-		#$rep_node->setRequired(true);
-		#$rep_node->setInfo($this->getPluginObject()->txt('form_rep_node_info'));
-		#$rep_node->setValue(1);
-		#$form->addItem($rep_node);
-		
 		$rep_node = new ilNumberInputGUI($this->getPluginObject()->txt('form_rep_node'), 'node');
 		$rep_node->setRequired(true);
 		$rep_node->setSize(7);
@@ -158,6 +158,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 			$action->setRoleFilter($form->getInput('role_filter'));
 			$action->setAction($form->getInput('action'));
 			
+			ilPermissionManagerSettings::getInstance()->setLogLevel($form->getInput('log_level'));
 			ilPermissionManagerSettings::getInstance()->setAction($action);
 			ilPermissionManagerSettings::getInstance()->update();
 			return true;
@@ -205,6 +206,17 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$table->init();
 		$table->parse();
 		
+		$meminfo = '';
+		if(function_exists('memory_get_peak_usage'))
+		{
+			$meminfo = ' Memory used: ';
+			$meminfo .= ((int) (memory_get_peak_usage() / 1024 / 1024));
+			$meminfo .= ' MB';
+			
+			ilUtil::sendInfo($meminfo);
+		}
+		
+		
 		$GLOBALS['tpl']->setContent($table->getHTML());
 	}
 	
@@ -216,7 +228,15 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$action = ilPermissionManagerSettings::getInstance()->getAction();
 		$info = $action->start();
 		
-		ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update').' '. print_r($info,true),true);
+		$meminfo = '';
+		if(function_exists('memory_get_peak_usage'))
+		{
+			$meminfo = ' Memory used: ';
+			$meminfo .= ((int) memory_get_peak_usage() / 1024 / 1024); 
+			$meminfo .= ' MB';
+		}
+		
+		ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update').$meminfo);
 		$GLOBALS['ilCtrl']->redirect($this,'listAffected');
 	}
 

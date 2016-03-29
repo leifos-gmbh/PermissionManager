@@ -230,10 +230,10 @@ class ilPermissionManagerAction
 			ilLoggerFactory::getLogger('lfpm')->debug('Applying new permission to role templates');
 			if($this->getChangeRoleTemplates() && ($role['parent'] == $a_node['child']))
 			{
-				ilLoggerFactory::getLogger('lfpm')->info('Update local role_permissions');
+				ilLoggerFactory::getLogger('lfpm')->debug('Update local role_permissions');
 				$this->updateTemplatePermissions($a_node, $role);
 			}
-			ilLoggerFactory::getLogger('lfpm')->info('Update object permissions');
+			ilLoggerFactory::getLogger('lfpm')->debug('Update object permissions');
 			$this->updateObjectPermissions($a_node, $role);
 		}
 		return;
@@ -347,12 +347,12 @@ class ilPermissionManagerAction
 				}
 				if(preg_match('/'.$filter.'/', $role_title) === 1)
 				{
-					ilLoggerFactory::getLogger('lfpm')->info('Filter '. $filter . ' matches '. $role_title);
+					ilLoggerFactory::getLogger('lfpm')->debug('Filter '. $filter . ' matches '. $role_title);
 					$valid_roles[] = $role;
 				}
 				else
 				{
-					ilLoggerFactory::getLogger('lfpm')->info('Filter '. $filter . ' does not match '. $role_title);
+					ilLoggerFactory::getLogger('lfpm')->debug('Filter '. $filter . ' does not match '. $role_title);
 				}
 			}
 		}
