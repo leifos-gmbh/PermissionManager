@@ -18,6 +18,9 @@ class ilPermissionManagerAction
 	const ADV_TYPE_OUTSIDE_GROUPS = 4;
 	const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 5;
 	
+	const ACTION_TYPE_PERMISSIONS = 0;
+	const ACTION_TYPE_AVAILABILITY = 1;
+	
 	const ACTION_ADD = 1;
 	const ACTION_REMOVE = 2;
 	
@@ -25,9 +28,13 @@ class ilPermissionManagerAction
 	private $type_filter = array();
 	private $advanced_type_filter = 0;
 	private $template_id = 0;
+	private $action_type = self::ACTION_TYPE_PERMISSIONS;
 	private $action = 0;
 	private $change_role_templates = false;
 	private $role_filter = array();
+	private $timing_start = 0;
+	private $timing_end = 0;
+	private $timing_visibility = 0;
 	
 	
 	
@@ -59,6 +66,16 @@ class ilPermissionManagerAction
 	public function getAdvancedTypeFilter()
 	{
 		return $this->advanced_type_filter;
+	}
+	
+	public function getActionType()
+	{
+		return $this->action_type;
+	}
+	
+	public function setActionType($a_type)
+	{
+		$this->action_type = $a_type;
 	}
 	
 	public function setAction($a_action)
@@ -101,10 +118,40 @@ class ilPermissionManagerAction
 		return $this->role_filter;
 	}
 	
+	public function setTimingStart($a_start)
+	{
+		$this->timing_start = $a_start;
+	}
+	
+	public function getTimingStart()
+	{
+		return $this->timing_start ? $this->timing_start : time();
+	}
+	
+	public function setTimingEnd($a_end)
+	{
+		$this->timing_end = $a_end;
+	}
+	
+	public function getTimingEnd()
+	{
+		return $this->timing_end ? $this->timing_end : time();
+	}
+	
+	public function setTimingVisibility($a_stat)
+	{
+		$this->timing_visibility = $a_stat;
+	}
+	
+	public function getTimingVisibility()
+	{
+		return $this->timing_visibility;
+	}
+	
 	public static function getAdvancedTypeFilterOptions()
 	{
 		return array(
-			self::ADV_TYPE_NONE => $GLOBALS['lng']->txt('select_one'),
+			self::ADV_TYPE_NONE => ilPermissionManagerPlugin::getInstance()->txt('adv_not_filtered'),
 			self::ADV_TYPE_IN_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_in_courses'),
 			self::ADV_TYPE_IN_GROUPS => ilPermissionManagerPlugin::getInstance()->txt('adv_in_groups'),
 			self::ADV_TYPE_OUTSIDE_COURSES => ilPermissionManagerPlugin::getInstance()->txt('adv_outside_courses'),
@@ -130,7 +177,7 @@ class ilPermissionManagerAction
 	
 	public function __sleep()
 	{
-		return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'change_role_templates', 'role_filter');
+		return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'action_type','change_role_templates', 'role_filter', 'timing_start', 'timing_end', 'timing_visibility');
 	}
 	
 	public function doSummary()
@@ -143,6 +190,7 @@ class ilPermissionManagerAction
 		{
 			$info_by_type[$type]['num'] = 0;
 		}
+		
 		ilLoggerFactory::getLogger('lfpm')->dump($info_by_type, ilLogLevel::DEBUG);
 		
 		// walk through repository tree
@@ -150,6 +198,8 @@ class ilPermissionManagerAction
 		
 		return $info_by_type;
 	}
+	
+	
 	
 	/**
 	 * Start permission manipulation
@@ -223,6 +273,12 @@ class ilPermissionManagerAction
 	{
 		ilLoggerFactory::getLogger('lfpm')->debug('Update node of type: ' . $a_node['type']. '('.$a_node['title'].')');
 		
+		if($this->getActionType() == self::ACTION_TYPE_AVAILABILITY)
+		{
+			$this->updateAvailability($a_node);
+			return;
+		}
+		
 		foreach($this->applyRoleFilter($a_node) as $role)
 		{
 			ilLoggerFactory::getLogger('lfpm')->dump($a_node,  ilLogLevel::DEBUG);
@@ -237,6 +293,35 @@ class ilPermissionManagerAction
 			$this->updateObjectPermissions($a_node, $role);
 		}
 		return;
+	}
+	
+	private function updateAvailability($node)
+	{
+		ilLoggerFactory::getLogger('lfpm')->dump($node);
+		
+		// creates default entry
+		$item = ilObjectActivation::getItem($node['child']);
+		
+		ilLoggerFactory::getLogger('lfpm')->dump($item);
+		
+		if(
+			$item['timing_type'] == ilObjectActivation::TIMINGS_ACTIVATION &&
+			$item['timing_end'] < time()
+		)
+		{
+			// do nothing
+			ilLoggerFactory::getLogger('lfpm')->debug('Item access already exceeded. Aborting');
+			return false;
+		}
+			
+		include_once './Services/Object/classes/class.ilObjectActivation.php';
+		$activation = new ilObjectActivation();
+		$activation->setTimingType(ilObjectActivation::TIMINGS_ACTIVATION);
+		$activation->setTimingStart($this->getTimingStart());
+		$activation->setTimingEnd($this->getTimingEnd());
+		$activation->toggleVisible($this->getTimingVisibility());
+		$activation->update($node['child']);
+		return true;
 	}
 	
 	/**

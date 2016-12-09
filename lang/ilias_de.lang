@@ -13,6 +13,7 @@ form_role_filter#:#Rollenfilter
 btn_show_affected#:#Zeige Anzahl der zu ändernden Objekte
 table_col_type#:#Objekttyp
 table_col_num#:#Anzahl der zu ändernden Objekte
+adv_not_filtered#:#Keine zusätzliche Filterung
 adv_in_courses#:#nur Objekte in Kursen
 adv_in_groups#:#nur Objekte in Gruppen
 adv_outside_courses#:#nur Objekte außerhalb von Kursen
@@ -21,3 +22,6 @@ adv_outside_courses_groups#:#nur Objekte außerhalb von Kursen/Gruppen
 table_summary_title#:#Übersicht der zu ändernenden Objekte
 executed_permission_update#:#Die Rechteänderungen wurden durchgeführt.
 form_tab_settings_loglevel#:#Log-Level
+action_type#:#Art der Änderung
+action_type_adjust_perm#:#Objekt-Rechte anpassen
+action_type_adjust_availability#:#Objekt-Verfügbarkeit anpassen

@@ -28,7 +28,6 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 		return self::$instance = new self();
 	}
 
-
 	/**
 	 * Get plugin name
 	 * @return string

@@ -105,28 +105,40 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$adv_filter->setRequired(true);
 		$form->addItem($adv_filter);
 		
+		
+		$action_type = new ilRadioGroupInputGUI($this->getPluginObject()->txt('action_type'),'action_type');
+		$action_type->setValue($action->getActionType());
+		$action_type->setRequired(true);
+		
+		$action_perm = new ilRadioOption($this->getPluginObject()->txt('action_type_adjust_perm'), ilPermissionManagerAction::ACTION_TYPE_PERMISSIONS);
+		$action_type->addOption($action_perm);
+		
+		$action_availability = new ilRadioOption($this->getPluginObject()->txt('action_type_adjust_availability'), ilPermissionManagerAction::ACTION_TYPE_AVAILABILITY);
+		$action_type->addOption($action_availability);
+		
+		
 		$templates = new ilSelectInputGUI($this->getPluginObject()->txt('form_rolt'), 'template');
 		$templates->setValue($action->getTemplate());
 		$templates->setRequired(true);
 		$templates->setOptions(ilPermissionManagerAction::getTemplateOptions());
-		$form->addItem($templates);
+		$action_perm->addSubItem($templates);
 		
-		$action_type = new ilRadioGroupInputGUI($this->getPluginObject()->txt('form_action'), 'action');
-		$action_type->setValue($action->getAction());
-		$action_type->setRequired(true);
+		$action_ar = new ilRadioGroupInputGUI($this->getPluginObject()->txt('form_action'), 'action');
+		$action_ar->setValue($action->getAction());
+		$action_ar->setRequired(true);
 		
 		$options_add = new ilRadioOption($this->getPluginObject()->txt('action_add'), ilPermissionManagerAction::ACTION_ADD);
-		$action_type->addOption($options_add);
+		$action_ar->addOption($options_add);
 		
 		$options_remove = new ilRadioOption($this->getPluginObject()->txt('action_remove'), ilPermissionManagerAction::ACTION_REMOVE);
-		$action_type->addOption($options_remove);
+		$action_ar->addOption($options_remove);
+		$action_perm->addSubItem($action_ar);
 		
-		$form->addItem($action_type);
 		
 		$adapt_templates = new ilCheckboxInputGUI($this->getPluginObject()->txt('form_action_templates'),'adapt_templates');
 		$adapt_templates->setChecked($action->getChangeRoleTemplates());
 		$adapt_templates->setValue(1);
-		$form->addItem($adapt_templates);
+		$action_perm->addSubItem($adapt_templates);
 		
 		$role_filter = new ilTextInputGUI($this->getPluginObject()->txt('form_role_filter'), 'role_filter');
 		ilLoggerFactory::getLogger('lfpm')->dump($action->getRoleFilter(),  ilLogLevel::DEBUG);
@@ -134,7 +146,37 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$role_filter->setMulti(true);
 		$role_filter->setValue(array_shift($action->getRoleFilter()));
 		$role_filter->setMultiValues($action->getRoleFilter());
-		$form->addItem($role_filter);
+		$action_perm->addSubItem($role_filter);
+		
+		
+		// Avaliability settings
+		$GLOBALS['lng']->loadLanguageModule('crs');
+		
+		$start = new ilDateTimeInputGUI($GLOBALS['lng']->txt('crs_timings_start'),'timing_start');
+		$start->setShowTime(true);
+		$start->setDate(new ilDateTime($action->getTimingStart(), IL_CAL_UNIX));
+		
+		ilLoggerFactory::getLogger('lfpm')->debug('Timing start: ' . $action->getTimingStart());
+		
+		$action_availability->addSubItem($start);
+		
+		$end = new ilDateTimeInputGUI($GLOBALS['lng']->txt('crs_timings_end'),'timing_end');
+		$end->setShowTime(true);
+		$end->setDate(new ilDateTime($action->getTimingEnd(),IL_CAL_UNIX));
+
+		ilLoggerFactory::getLogger('lfpm')->debug('Timing end: ' . $action->getTimingEnd());
+
+		$action_availability->addSubItem($end);
+			
+		$isv = new ilCheckboxInputGUI($GLOBALS['lng']->txt('crs_timings_visibility_short'),'visible');
+		$isv->setInfo($GLOBALS['lng']->txt('crs_timings_visibility'));
+		$isv->setValue(1);
+		$isv->setChecked($action->getTimingVisibility() ? true : false);
+		$action_availability->addSubItem($isv);
+
+		$form->addItem($action_type);
+		
+		
 
 		$form->addCommandButton('save', $GLOBALS['lng']->txt('save'));
 		$form->addCommandButton('showAffected', $this->getPluginObject()->txt('btn_show_affected'));
@@ -157,6 +199,15 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 			$action->setChangeRoleTemplates($form->getInput('adapt_templates'));
 			$action->setRoleFilter($form->getInput('role_filter'));
 			$action->setAction($form->getInput('action'));
+			$action->setActionType($form->getInput('action_type'));
+			$action->setTimingStart($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
+			$action->setTimingEnd($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
+			
+			ilLoggerFactory::getLogger('lfpm')->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
+			ilLoggerFactory::getLogger('lfpm')->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
+			
+			
+			$action->setTimingVisibility($form->getInput('visible'));
 			
 			ilPermissionManagerSettings::getInstance()->setLogLevel($form->getInput('log_level'));
 			ilPermissionManagerSettings::getInstance()->setAction($action);
