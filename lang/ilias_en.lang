@@ -22,6 +22,6 @@ adv_outside_courses_groups#:#only Objects Outside Courses/Groups
 table_summary_title#:#Overview Changed Objects
 executed_permission_update#:#Permission changes were applied.
 form_tab_settings_loglevel#:#Log-Level
-action_type#:#Kind of Change
-action_type_adjust_perm#:#Adapt Object Permissions
-action_type_adjust_availability#:#Adapt Object Avaliability
+action_type#:#Kind of Modification
+action_type_adjust_perm#:#Change Object Permissions
+action_type_adjust_availability#:#Change Object Avaliability
