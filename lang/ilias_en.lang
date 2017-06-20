@@ -1,0 +1,27 @@
+tab_configure#:#Configuration
+form_tab_settings#:#Settings
+form_rep_node#:#Starting node in the Repository (ref_id)
+form_rep_node_info#:#Choose a starting point from the repository. Changes will only applied below this node.
+form_type_filter#:#Object Type Filter
+form_type_adv_filter#:#Advanced Object Filter
+form_rolt#:#Role Template
+form_action#:#Action
+action_add#:#Add Permissions
+action_remove#:#Remove Permissions
+form_action_templates#:#Adapt Role Templates
+form_role_filter#:#Role Filter
+btn_show_affected#:#Show Number of Changed Objects
+table_col_type#:#Object Type
+table_col_num#:#Number of Changed Objects
+adv_not_filtered#:#No Additional Filtering
+adv_in_courses#:#only Objects in Courses
+adv_in_groups#:#only Objects in Groups
+adv_outside_courses#:#only Objects outside of Courses
+adv_outside_groups#:#only Objects outside of Groups
+adv_outside_courses_groups#:#only Objects Outside Courses/Groups
+table_summary_title#:#Overview Changed Objects
+executed_permission_update#:#Permission changes were applied.
+form_tab_settings_loglevel#:#Log-Level
+action_type#:#Kind of Change
+action_type_adjust_perm#:#Adapt Object Permissions
+action_type_adjust_availability#:#Adapt Object Avaliability
