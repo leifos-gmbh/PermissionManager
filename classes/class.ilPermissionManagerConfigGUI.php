@@ -173,6 +173,12 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$isv->setValue(1);
 		$isv->setChecked($action->getTimingVisibility() ? true : false);
 		$action_availability->addSubItem($isv);
+		
+		$reset = new ilCheckboxInputGUI($this->getPluginObject()->txt('reset_timings'),'reset');
+		$reset->setInfo($this->getPluginObject()->txt('reset_timings_info'));
+		$reset->setValue(1);
+		$reset->setChecked($action->resetTimingsEnabled());
+		$action_availability->addSubItem($reset);
 
 		$form->addItem($action_type);
 		
@@ -202,6 +208,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 			$action->setActionType($form->getInput('action_type'));
 			$action->setTimingStart($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
 			$action->setTimingEnd($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
+			$action->setResetTimingsEnabled($form->getInput('reset'));
 			
 			ilLoggerFactory::getLogger('lfpm')->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
 			ilLoggerFactory::getLogger('lfpm')->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));

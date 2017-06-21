@@ -25,3 +25,5 @@ form_tab_settings_loglevel#:#Log-Level
 action_type#:#Art der Änderung
 action_type_adjust_perm#:#Objekt-Rechte anpassen
 action_type_adjust_availability#:#Objekt-Verfügbarkeit anpassen
+reset_timings#:#Zeitvorgaben ausschalten
+reset_timings_info#:#Für die ausgewählten Objekte wird der Status "Verfügbarkeit ausgeschaltet" gesetzt.

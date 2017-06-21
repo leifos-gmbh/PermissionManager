@@ -35,6 +35,7 @@ class ilPermissionManagerAction
 	private $timing_start = 0;
 	private $timing_end = 0;
 	private $timing_visibility = 0;
+	private $reset_timings = false;
 	
 	
 	
@@ -148,6 +149,16 @@ class ilPermissionManagerAction
 		return $this->timing_visibility;
 	}
 	
+	public function setResetTimingsEnabled($a_status)
+	{
+		$this->reset_timings = $a_status;
+	}
+	
+	public function resetTimingsEnabled()
+	{
+		return $this->reset_timings;
+	}
+	
 	public static function getAdvancedTypeFilterOptions()
 	{
 		return array(
@@ -177,7 +188,7 @@ class ilPermissionManagerAction
 	
 	public function __sleep()
 	{
-		return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'action_type','change_role_templates', 'role_filter', 'timing_start', 'timing_end', 'timing_visibility');
+		return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'action_type','change_role_templates', 'role_filter', 'timing_start', 'timing_end', 'timing_visibility','reset_timings');
 	}
 	
 	public function doSummary()
@@ -303,7 +314,7 @@ class ilPermissionManagerAction
 		$item = ilObjectActivation::getItem($node['child']);
 		
 		ilLoggerFactory::getLogger('lfpm')->dump($item);
-		
+		/*
 		if(
 			$item['timing_type'] == ilObjectActivation::TIMINGS_ACTIVATION &&
 			$item['timing_end'] < time()
@@ -312,6 +323,17 @@ class ilPermissionManagerAction
 			// do nothing
 			ilLoggerFactory::getLogger('lfpm')->debug('Item access already exceeded. Aborting');
 			return false;
+		}
+		 * 
+		 */
+		
+		if($this->resetTimingsEnabled() == true)
+		{
+			include_once './Services/Object/classes/class.ilObjectActivation.php';
+			$activation = new ilObjectActivation();
+			$activation->setTimingType(ilObjectActivation::TIMINGS_DEACTIVATED);
+			$activation->update($node['child']);
+			return true;
 		}
 			
 		include_once './Services/Object/classes/class.ilObjectActivation.php';
