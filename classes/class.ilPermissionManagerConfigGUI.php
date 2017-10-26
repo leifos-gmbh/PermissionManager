@@ -88,13 +88,21 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 		$type_filter->setValue($action->getTypeFilter());
 		$type_filter->setRequired(true);
 		
+		$options = array();
 		foreach($GLOBALS['objDefinition']->getAllRepositoryTypes() as $type_str)
 		{
-			if(!$GLOBALS['objDefinition']->isRbacObject($type_str))
+			if(
+				$GLOBALS['objDefinition']->isSystemObject($type_str) ||
+				!$GLOBALS['objDefinition']->isRBACObject($type_str))
 			{
 				continue;
 			}
-			$type_option = new ilRadioOption($GLOBALS['lng']->txt('objs_'.$type_str), $type_str);
+			$options[$type_str] = $GLOBALS['lng']->txt('objs_'.$type_str);
+		}
+		asort($options);
+		foreach($options as $type_str => $translation)
+		{
+			$type_option = new ilRadioOption($translation, $type_str);
 			$type_filter->addOption($type_option);
 		}
 		$form->addItem($type_filter);
