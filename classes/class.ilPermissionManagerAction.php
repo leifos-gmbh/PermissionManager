@@ -181,7 +181,7 @@ class ilPermissionManagerAction
 		$res = $ilDB->query($query);
 		
 		$options[0] =  $GLOBALS['lng']->txt('select_one');
-		while($row = $res->fetchRow(DB_FETCHMODE_OBJECT))
+		while($row = $res->fetchRow(ilDBConstants::FETCHMODE_OBJECT))
 		{
 			$options[$row->obj_id] = $row->title; 
 		}
