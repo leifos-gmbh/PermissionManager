@@ -16,7 +16,9 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 	 */
 	public function performCommand($cmd)
 	{
-		global $ilTabs;
+		global $DIC;
+
+		$ilTabs = $DIC->tabs();
 
 		$ilTabs->addTab(
 			'configure',

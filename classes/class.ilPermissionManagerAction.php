@@ -173,7 +173,9 @@ class ilPermissionManagerAction
 	
 	public static function getTemplateOptions()
 	{
-		global $ilDB;
+		global $DIC;
+
+		$ilDB = $DIC->database();
 		
 		$query = 'SELECT obj_id, title FROM object_data WHERE type = '.$ilDB->quote('rolt','text').' ORDER BY title';
 		$res = $ilDB->query($query);
@@ -353,8 +355,10 @@ class ilPermissionManagerAction
 	 */
 	private function updateTemplatePermissions(array $node, array $role)
 	{
-		global $rbacadmin;
-		
+		global $DIC;
+
+		$rbacadmin = $DIC->rbac()->admin();
+
 		if($this->getAction() == self::ACTION_ADD)
 		{
 			ilLoggerFactory::getLogger('lfpm')->debug('Action add permissions');
@@ -386,7 +390,10 @@ class ilPermissionManagerAction
 	 */
 	private function updateObjectPermissions(array $node, array $role)
 	{
-		global $rbacreview, $rbacadmin;
+		global $DIC;
+
+		$rbacreview = $DIC->rbac()->review();
+		$rbacadmin = $DIC->rbac()->admin();
 		
 		$operations = $rbacreview->getOperationsOfRole($this->getTemplate(),$node['type'],ROLE_FOLDER_ID);
 		ilLoggerFactory::getLogger('lfpm')->debug('Operations for type '.$node['type']);
@@ -436,7 +443,9 @@ class ilPermissionManagerAction
 	 */
 	private function applyRoleFilter(array $a_node)
 	{
-		global $rbacreview;
+		global $DIC;
+
+		$rbacreview = $DIC->rbac()->review();
 		
 		$valid_roles = array();
 		foreach($rbacreview->getParentRoleIds($a_node['child'], $this->getChangeRoleTemplates()) as $role)
