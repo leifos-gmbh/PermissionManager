@@ -46,6 +46,9 @@ class ilPermissionManagerAction
      */
     private $logger;
 
+    /**
+     * @var ilObjectDefinition
+     */
     private $objDefinition;
 
     public function __construct()
@@ -106,10 +109,20 @@ class ilPermissionManagerAction
         return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'action_type', 'change_role_templates', 'role_filter', 'timing_start', 'timing_end', 'timing_visibility', 'reset_timings');
     }
 
+    /**
+     * Magic
+     */
+    public function __wakeup()
+    {
+        global $DIC;
+
+        $this->tree = $DIC->repositoryTree();
+        $this->logger = ilLoggerFactory::getLogger('lfpm');
+        $this->objDefinition = $DIC['objDefinition'];
+    }
+
     public function doSummary()
     {
-
-
         $this->tree->useCache(false);
 
         $info_by_type = array();

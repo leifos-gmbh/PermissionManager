@@ -112,6 +112,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $form->addItem($level);
 
         $rep_node = new ilNumberInputGUI($this->getPluginObject()->txt('form_rep_node'), 'node');
+        $rep_node->setMinValue(1);
         $rep_node->setRequired(true);
         $rep_node->setSize(7);
         $rep_node->setValue($action->getRepositoryNode());

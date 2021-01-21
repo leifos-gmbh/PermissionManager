@@ -13,12 +13,22 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
     private $settings = null;
 
     /**
-     * @param type $a_parent_obj
-     * @param type $a_parent_cmd
-     * @param type $a_template_context
+     * @var ilObjectDefinition
+     */
+    private $objDefinition;
+
+    /**
+     * @param object $a_parent_obj
+     * @param string $a_parent_cmd
+     * @param string $a_template_context
      */
     public function __construct($a_parent_obj, $a_parent_cmd = "", $a_template_context = "")
     {
+        global $DIC;
+
+        $this->objDefinition = $DIC['objDefinition'];
+        $this->lng = $DIC->language();
+
         $this->setId('lfpm');
         parent::__construct($a_parent_obj, $a_parent_cmd, $a_template_context);
     }
@@ -86,7 +96,12 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
 
     public function fillRow($set)
     {
-        $this->tpl->setVariable('OBJ_TYPE', $GLOBALS['lng']->txt('objs_' . $set['type']));
+        if ($this->objDefinition->isPlugin($set['type'])) {
+            $type_str = ilObjectPlugin::lookupTxtById($set['type'], 'objs_' . $set['type']);
+        } else {
+            $type_str = $this->lng->txt('objs_' . $set['type']);
+        }
+        $this->tpl->setVariable('OBJ_TYPE', $type_str);
         $this->tpl->setVariable('OBJ_NUM', $set['num']);
     }
 

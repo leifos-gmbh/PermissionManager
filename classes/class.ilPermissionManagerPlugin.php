@@ -32,7 +32,9 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
     private final function autoLoad($a_classname)
     {
         $class_file = $this->getClassesDirectory() . '/class.' . $a_classname . '.php';
-        @include_once($class_file);
+        if (file_exists($class_file)) {
+            include_once $class_file;
+        }
     }
 
     /**
