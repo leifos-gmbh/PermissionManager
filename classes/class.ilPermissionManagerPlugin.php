@@ -6,81 +6,74 @@ include_once './Services/UIComponent/classes/class.ilUserInterfaceHookPlugin.php
 
 /**
  * Class lfPermissionManagerPlugin
- *
  * @author  Stefan Meyer <smeyer.ilias@gmx.de>
  */
 class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 {
-	private static $instance = null;
-	
-	const PLUGIN_NAME = 'PermissionManager';
-	
-	/**
-	 * Get singleton instance
-	 * @return lfPermissionManagerPlugin
-	 */
-	public static function getInstance()
-	{
-		if(self::$instance instanceof self)
-		{
-			return self::$instance;
-		}
-		return self::$instance = new self();
-	}
+    const PLUGIN_NAME = 'PermissionManager';
+    private static $instance = null;
 
-	/**
-	 * Get plugin name
-	 * @return string
-	 */
-	public function getPluginName()
-	{
-		return self::PLUGIN_NAME;
-	}
-	
-	/**
-	 * Init vitero
-	 */
-	protected function init()
-	{
-		$this->initAutoLoad();
+    /**
+     * Get singleton instance
+     * @return lfPermissionManagerPlugin
+     */
+    public static function getInstance()
+    {
+        if (self::$instance instanceof self) {
+            return self::$instance;
+        }
+        return self::$instance = new self();
+    }
 
-		// set configured log level
-		foreach(ilLoggerFactory::getLogger('lfpm')->getLogger()->getHandlers() as $handler)
-		{
-			$handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
-		}
-		
-	}
+    /**
+     * Auto load implementation
+     * @param string class name
+     */
+    private final function autoLoad($a_classname)
+    {
+        $class_file = $this->getClassesDirectory() . '/class.' . $a_classname . '.php';
+        @include_once($class_file);
+    }
 
-	/**
-	 * Init auto loader
-	 * @return void
-	 */
-	protected function initAutoLoad()
-	{
-		spl_autoload_register(
-			array($this,'autoLoad')
-		);
-	}
+    /**
+     * Init vitero
+     */
+    protected function init()
+    {
+        $this->initAutoLoad();
 
-	/**
-	 * Auto load implementation
-	 *
-	 * @param string class name
-	 */
-	private final function autoLoad($a_classname)
-	{
-		$class_file = $this->getClassesDirectory().'/class.'.$a_classname.'.php';
-		@include_once($class_file);
-	}
-	
-	
-	/**
-	 * drop database tables and delete ilSetting entrys
-	 */
-	protected function uninstallCustom()
-	{
-	}
+        // set configured log level
+        foreach (ilLoggerFactory::getLogger('lfpm')->getLogger()->getHandlers() as $handler) {
+            $handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
+        }
 
+    }
+
+    /**
+     * Init auto loader
+     * @return void
+     */
+    protected function initAutoLoad()
+    {
+        spl_autoload_register(
+            array($this, 'autoLoad')
+        );
+    }
+
+    /**
+     * drop database tables and delete ilSetting entrys
+     */
+    protected function uninstallCustom()
+    {
+    }
+
+    /**
+     * Get plugin name
+     * @return string
+     */
+    public function getPluginName()
+    {
+        return self::PLUGIN_NAME;
+    }
 
 }
