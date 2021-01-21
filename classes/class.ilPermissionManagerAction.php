@@ -41,11 +41,20 @@ class ilPermissionManagerAction
      */
     private $tree;
 
+    /**
+     * @var ilLogger
+     */
+    private $logger;
+
+    private $objDefinition;
+
     public function __construct()
     {
         global $DIC;
 
         $this->tree = $DIC->repositoryTree();
+        $this->logger = ilLoggerFactory::getLogger('lfpm');
+        $this->objDefinition = $DIC['objDefinition'];
     }
 
     public static function getAdvancedTypeFilterOptions()
@@ -101,7 +110,7 @@ class ilPermissionManagerAction
     {
 
 
-        $GLOBALS['tree']->useCache(false);
+        $this->tree->useCache(false);
 
         $info_by_type = array();
         // initializte $info array();
@@ -109,10 +118,10 @@ class ilPermissionManagerAction
             $info_by_type[$type]['num'] = 0;
         }
 
-        ilLoggerFactory::getLogger('lfpm')->dump($info_by_type, ilLogLevel::DEBUG);
+        $this->logger->dump($info_by_type, ilLogLevel::DEBUG);
 
         // walk through repository tree
-        $this->walkThroughTree($GLOBALS['tree']->getNodeData($this->getRepositoryNode()), self::MODE_SUMMARY, $info_by_type);
+        $this->walkThroughTree($this->tree->getNodeData($this->getRepositoryNode()), self::MODE_SUMMARY, $info_by_type);
 
         return $info_by_type;
     }
@@ -137,17 +146,17 @@ class ilPermissionManagerAction
             }
         } elseif (
             $a_mode == self::MODE_UPDATE &&
-            $GLOBALS['objDefinition']->isContainer($a_node['type'])
+            $this->objDefinition->isContainer($a_node['type'])
         ) {
             $this->updateContainer($a_node);
         }
 
-        foreach ($GLOBALS['tree']->getChilds($a_node['child']) as $child) {
+        foreach ($this->tree->getChilds($a_node['child']) as $child) {
             if ($child['type'] == 'adm') {
                 continue;
             }
 
-            if (!$GLOBALS['objDefinition']->isContainer($child['type'])) {
+            if (!$this->objDefinition->isContainer($child['type'])) {
                 $is_handled_type = $this->isHandledType($child);
                 if ($is_handled_type) {
                     $info_by_type[$child['type']]['num']++;
@@ -156,7 +165,7 @@ class ilPermissionManagerAction
                     }
                 }
             }
-            if ($GLOBALS['objDefinition']->isContainer($child['type'])) {
+            if ($this->objDefinition->isContainer($child['type'])) {
                 $this->walkThroughTree($child, $a_mode, $info_by_type);
             }
         }
@@ -218,11 +227,11 @@ class ilPermissionManagerAction
 
     /**
      * Update node
-     * @param type $a_node
+     * @param array $a_node
      */
     private function updateNode(array $a_node)
     {
-        ilLoggerFactory::getLogger('lfpm')->debug('Update node of type: ' . $a_node['type'] . '(' . $a_node['title'] . ')');
+        $this->logger->debug('Update node of type: ' . $a_node['type'] . '(' . $a_node['title'] . ')');
 
         if ($this->getActionType() == self::ACTION_TYPE_AVAILABILITY) {
             $this->updateAvailability($a_node);
@@ -230,14 +239,14 @@ class ilPermissionManagerAction
         }
 
         foreach ($this->applyRoleFilter($a_node) as $role) {
-            ilLoggerFactory::getLogger('lfpm')->dump($a_node, ilLogLevel::DEBUG);
-            ilLoggerFactory::getLogger('lfpm')->dump($role, ilLogLevel::DEBUG);
-            ilLoggerFactory::getLogger('lfpm')->debug('Applying new permission to role templates');
+            $this->logger->dump($a_node, ilLogLevel::DEBUG);
+            $this->logger->dump($role, ilLogLevel::DEBUG);
+            $this->logger->debug('Applying new permission to role templates');
             if ($this->getChangeRoleTemplates() && ($role['parent'] == $a_node['child'])) {
-                ilLoggerFactory::getLogger('lfpm')->debug('Update local role_permissions');
+                $this->logger->debug('Update local role_permissions');
                 $this->updateTemplatePermissions($a_node, $role);
             }
-            ilLoggerFactory::getLogger('lfpm')->debug('Update object permissions');
+            $this->logger->debug('Update object permissions');
             $this->updateObjectPermissions($a_node, $role);
         }
         return;
@@ -255,12 +264,12 @@ class ilPermissionManagerAction
 
     private function updateAvailability($node)
     {
-        ilLoggerFactory::getLogger('lfpm')->dump($node);
+        $this->logger->dump($node);
 
         // creates default entry
         $item = ilObjectActivation::getItem($node['child']);
 
-        ilLoggerFactory::getLogger('lfpm')->dump($item);
+        $this->logger->dump($item);
         /*
         if(
             $item['timing_type'] == ilObjectActivation::TIMINGS_ACTIVATION &&
@@ -268,7 +277,7 @@ class ilPermissionManagerAction
         )
         {
             // do nothing
-            ilLoggerFactory::getLogger('lfpm')->debug('Item access already exceeded. Aborting');
+            $this->logger->debug('Item access already exceeded. Aborting');
             return false;
         }
          *
@@ -339,20 +348,20 @@ class ilPermissionManagerAction
 
         $valid_roles = array();
         foreach ($rbacreview->getParentRoleIds($a_node['child'], $this->getChangeRoleTemplates()) as $role) {
-            #ilLoggerFactory::getLogger('lfpm')->dump($role, ilLogLevel::DEBUG);
+            #$this->logger->dump($role, ilLogLevel::DEBUG);
             foreach ($this->getRoleFilter() as $filter) {
                 $filter     = trim($filter);
                 $role_title = trim($role['title']);
 
                 if (!strlen($filter)) {
-                    ilLoggerFactory::getLogger('lfpm')->debug('Empty filter given');
+                    $this->logger->debug('Empty filter given');
                     continue;
                 }
                 if (preg_match('/' . $filter . '/', $role_title) === 1) {
-                    ilLoggerFactory::getLogger('lfpm')->debug('Filter ' . $filter . ' matches ' . $role_title);
+                    $this->logger->debug('Filter ' . $filter . ' matches ' . $role_title);
                     $valid_roles[] = $role;
                 } else {
-                    ilLoggerFactory::getLogger('lfpm')->debug('Filter ' . $filter . ' does not match ' . $role_title);
+                    $this->logger->debug('Filter ' . $filter . ' does not match ' . $role_title);
                 }
             }
         }
@@ -391,7 +400,7 @@ class ilPermissionManagerAction
         $rbacadmin = $DIC->rbac()->admin();
 
         if ($this->getAction() == self::ACTION_ADD) {
-            ilLoggerFactory::getLogger('lfpm')->debug('Action add permissions');
+            $this->logger->debug('Action add permissions');
             $rbacadmin->copyRolePermissionUnion(
                 $this->getTemplate(),
                 ROLE_FOLDER_ID,
@@ -402,7 +411,7 @@ class ilPermissionManagerAction
             );
         }
         if ($this->getAction() == self::ACTION_REMOVE) {
-            ilLoggerFactory::getLogger('lfpm')->debug('Action remove permissions');
+            $this->logger->debug('Action remove permissions');
             $rbacadmin->copyRolePermissionSubtract(
                 $this->getTemplate(),
                 ROLE_FOLDER_ID,
@@ -440,12 +449,12 @@ class ilPermissionManagerAction
         $rbacadmin  = $DIC->rbac()->admin();
 
         $operations = $rbacreview->getOperationsOfRole($this->getTemplate(), $node['type'], ROLE_FOLDER_ID);
-        ilLoggerFactory::getLogger('lfpm')->debug('Operations for type ' . $node['type']);
-        ilLoggerFactory::getLogger('lfpm')->dump($operations, ilLogLevel::DEBUG);
+        $this->logger->debug('Operations for type ' . $node['type']);
+        $this->logger->dump($operations, ilLogLevel::DEBUG);
 
         $active = $rbacreview->getActiveOperationsOfRole($node['child'], $role['obj_id']);
-        ilLoggerFactory::getLogger('lfpm')->debug('Active operations for ' . $node['title']);
-        ilLoggerFactory::getLogger('lfpm')->dump($active, ilLogLevel::DEBUG);
+        $this->logger->debug('Active operations for ' . $node['title']);
+        $this->logger->dump($active, ilLogLevel::DEBUG);
 
         if ($this->getAction() == self::ACTION_ADD) {
             $new_permissions = array_unique(array_merge($operations, $active));
@@ -454,8 +463,8 @@ class ilPermissionManagerAction
             $new_permissions = array_diff($active, $operations);
         }
 
-        ilLoggerFactory::getLogger('lfpm')->debug('New operations for ' . $node['title']);
-        ilLoggerFactory::getLogger('lfpm')->dump($new_permissions, ilLogLevel::DEBUG);
+        $this->logger->debug('New operations for ' . $node['title']);
+        $this->logger->dump($new_permissions, ilLogLevel::DEBUG);
 
         $rbacadmin->revokePermission($node['child'], $role['obj_id']);
         $rbacadmin->grantPermission($role['obj_id'], (array) $new_permissions, $node['child']);
@@ -466,14 +475,14 @@ class ilPermissionManagerAction
         return;
 
         if (!$this->getChangeRoleTemplates()) {
-            ilLoggerFactory::getLogger('lfpm')->debug('Update container of type: ' . $a_node['type'] . '(' . $a_node['title'] . ')');
-            ilLoggerFactory::getLogger('lfpm')->debug('No template updates required');
+            $this->logger->debug('Update container of type: ' . $a_node['type'] . '(' . $a_node['title'] . ')');
+            $this->logger->debug('No template updates required');
             return;
         }
 
         // get roles by filter
         foreach ($this->applyRoleFilter($a_node) as $role) {
-            ilLoggerFactory::getLogger('lfpm')->debug('Applying new permission to role templates');
+            $this->logger->debug('Applying new permission to role templates');
         }
     }
 
@@ -487,14 +496,14 @@ class ilPermissionManagerAction
      */
     public function start()
     {
-        $GLOBALS['tree']->useCache(false);
+        $this->tree->useCache(false);
         foreach ($this->getTypeFilter() as $type) {
             $info_by_type[$type]['num'] = 0;
         }
-        ilLoggerFactory::getLogger('lfpm')->dump($info_by_type, ilLogLevel::DEBUG);
+        $this->logger->dump($info_by_type, ilLogLevel::DEBUG);
 
         // walk through repository tree
-        $this->walkThroughTree($GLOBALS['tree']->getNodeData($this->getRepositoryNode()), self::MODE_UPDATE, $info_by_type);
+        $this->walkThroughTree($this->tree->getNodeData($this->getRepositoryNode()), self::MODE_UPDATE, $info_by_type);
 
         return $info_by_type;
 

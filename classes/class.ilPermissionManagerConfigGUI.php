@@ -4,26 +4,63 @@
 include_once './Services/Component/classes/class.ilPluginConfigGUI.php';
 
 /**
- * Permission manager confguration
+ * Permission manager configuration
  * @author Stefan Meyer <smeyer.ilias@gmx.de>
  */
 class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 {
+
+    /**
+     * @var ilObjectDefinition
+     */
+    private $objDefinition;
+
+    /**
+     * @var ilLanguage
+     */
+    private $lng;
+
+    /**
+     * @var ilCtrl
+     */
+    private $ctrl;
+
+    /**
+     * @var ilTemplate
+     */
+    private $tpl;
+
+    /**
+     * @var ilLogger
+     */
+    private $logger;
+
+    public function __construct()
+    {
+        global $DIC;
+
+        $this->objDefinition = $DIC['objDefinition'];
+        $this->lng = $DIC->language();
+        $this->ctrl = $DIC->ctrl();
+        $this->tpl = $DIC->ui()->mainTemplate();
+        $this->logger = ilLoggerFactory::getLogger('lfpm');
+    }
+
     protected function save()
     {
         if ($this->doSave()) {
-            ilUtil::sendSuccess($GLOBALS['lng']->txt('settings_saved'), true);
-            $GLOBALS['ilCtrl']->redirect($this, 'configure');
+            ilUtil::sendSuccess($this->lng->txt('settings_saved'), true);
+            $this->ctrl->redirect($this, 'configure');
             return true;
         }
     }
 
     protected function doSave()
     {
-        ilLoggerFactory::getLogger('lfpm')->debug('Saving confguration options...');
+        $this->logger->debug('Saving confguration options...');
         $form = $this->initConfigurationForm();
         if ($form->checkInput()) {
-            ilLoggerFactory::getLogger('lfpm')->dump($_POST, ilLogLevel::DEBUG);
+            $this->logger->dump($_POST, ilLogLevel::DEBUG);
             $action = new ilPermissionManagerAction();
             $action->setRepositoryNode($form->getInput('node'));
             $action->setTypeFilter($form->getInput('type_filter'));
@@ -37,8 +74,8 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             $action->setTimingEnd($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
             $action->setResetTimingsEnabled($form->getInput('reset'));
 
-            ilLoggerFactory::getLogger('lfpm')->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
-            ilLoggerFactory::getLogger('lfpm')->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
+            $this->logger->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
+            $this->logger->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
 
             $action->setTimingVisibility($form->getInput('visible'));
 
@@ -47,7 +84,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             ilPermissionManagerSettings::getInstance()->update();
             return true;
         }
-        ilUtil::sendFailure($GLOBALS['lng']->txt('err_check_input'));
+        ilUtil::sendFailure($this->lng->txt('err_check_input'));
         $this->configure($form);
         return false;
 
@@ -60,15 +97,15 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
     protected function initConfigurationForm()
     {
         $action = ilPermissionManagerSettings::getInstance()->getAction();
-        ilLoggerFactory::getLogger('lfpm')->dump($action, ilLogLevel::DEBUG);
+        $this->logger->dump($action, ilLogLevel::DEBUG);
 
         include_once './Services/Form/classes/class.ilPropertyFormGUI.php';
         $form = new ilPropertyFormGUI();
-        $form->setFormAction($GLOBALS['ilCtrl']->getFormAction($this));
+        $form->setFormAction($this->ctrl->getFormAction($this));
         $form->setTitle($this->getPluginObject()->txt('form_tab_settings'));
 
         // log level
-        $GLOBALS['lng']->loadLanguageModule('log');
+        $this->lng->loadLanguageModule('log');
         $level = new ilSelectInputGUI($this->getPluginObject()->txt('form_tab_settings_loglevel'), 'log_level');
         $level->setOptions(ilLogLevel::getLevelOptions());
         $level->setValue(ilPermissionManagerSettings::getInstance()->getLogLevel());
@@ -86,13 +123,17 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $type_filter->setRequired(true);
 
         $options = array();
-        foreach ($GLOBALS['objDefinition']->getAllRepositoryTypes() as $type_str) {
+        foreach ($this->objDefinition->getAllRepositoryTypes() as $type_str) {
             if (
-                $GLOBALS['objDefinition']->isSystemObject($type_str) ||
-                !$GLOBALS['objDefinition']->isRBACObject($type_str)) {
+                $this->objDefinition->isSystemObject($type_str) ||
+                !$this->objDefinition->isRBACObject($type_str)) {
                 continue;
             }
-            $options[$type_str] = $GLOBALS['lng']->txt('objs_' . $type_str);
+            if ($this->objDefinition->isPlugin($type_str)) {
+                $options[$type_str] = ilObjectPlugin::lookupTxtById($type_str, 'obj_' . $type_str);
+            } else {
+                $options[$type_str] = $this->lng->txt('objs_' . $type_str);
+            }
         }
         asort($options);
         foreach ($options as $type_str => $translation) {
@@ -140,7 +181,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $action_perm->addSubItem($adapt_templates);
 
         $role_filter = new ilTextInputGUI($this->getPluginObject()->txt('form_role_filter'), 'role_filter');
-        ilLoggerFactory::getLogger('lfpm')->dump($action->getRoleFilter(), ilLogLevel::DEBUG);
+        $this->logger->dump($action->getRoleFilter(), ilLogLevel::DEBUG);
         $role_filter->setRequired(true);
         $role_filter->setMulti(true);
         $role_filter->setValue(array_shift($action->getRoleFilter()));
@@ -148,26 +189,26 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $action_perm->addSubItem($role_filter);
 
         // Avaliability settings
-        $GLOBALS['lng']->loadLanguageModule('crs');
+        $this->lng->loadLanguageModule('crs');
 
-        $start = new ilDateTimeInputGUI($GLOBALS['lng']->txt('crs_timings_start'), 'timing_start');
+        $start = new ilDateTimeInputGUI($this->lng->txt('crs_timings_start'), 'timing_start');
         $start->setShowTime(true);
         $start->setDate(new ilDateTime($action->getTimingStart(), IL_CAL_UNIX));
 
-        ilLoggerFactory::getLogger('lfpm')->debug('Timing start: ' . $action->getTimingStart());
+        $this->logger->debug('Timing start: ' . $action->getTimingStart());
 
         $action_availability->addSubItem($start);
 
-        $end = new ilDateTimeInputGUI($GLOBALS['lng']->txt('crs_timings_end'), 'timing_end');
+        $end = new ilDateTimeInputGUI($this->lng->txt('crs_timings_end'), 'timing_end');
         $end->setShowTime(true);
         $end->setDate(new ilDateTime($action->getTimingEnd(), IL_CAL_UNIX));
 
-        ilLoggerFactory::getLogger('lfpm')->debug('Timing end: ' . $action->getTimingEnd());
+        $this->logger->debug('Timing end: ' . $action->getTimingEnd());
 
         $action_availability->addSubItem($end);
 
-        $isv = new ilCheckboxInputGUI($GLOBALS['lng']->txt('crs_timings_visibility_short'), 'visible');
-        $isv->setInfo($GLOBALS['lng']->txt('crs_timings_visibility'));
+        $isv = new ilCheckboxInputGUI($this->lng->txt('crs_timings_visibility_short'), 'visible');
+        $isv->setInfo($this->lng->txt('crs_timings_visibility'));
         $isv->setValue(1);
         $isv->setChecked($action->getTimingVisibility() ? true : false);
         $action_availability->addSubItem($isv);
@@ -180,7 +221,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 
         $form->addItem($action_type);
 
-        $form->addCommandButton('save', $GLOBALS['lng']->txt('save'));
+        $form->addCommandButton('save', $this->lng->txt('save'));
         $form->addCommandButton('showAffected', $this->getPluginObject()->txt('btn_show_affected'));
         return $form;
 
@@ -196,7 +237,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         if (!$form instanceof ilPropertyFormGUI) {
             $form = $this->initConfigurationForm();
         }
-        $GLOBALS['tpl']->setContent($form->getHTML());
+        $this->tpl->setContent($form->getHTML());
     }
 
     /**
@@ -206,7 +247,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
     {
 
         if ($this->doSave()) {
-            $GLOBALS['ilCtrl']->redirect($this, 'listAffected');
+            $this->ctrl->redirect($this, 'listAffected');
             return true;
         }
     }
@@ -233,7 +274,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             ilUtil::sendInfo($meminfo);
         }
 
-        $GLOBALS['tpl']->setContent($table->getHTML());
+        $this->tpl->setContent($table->getHTML());
     }
 
     /**
@@ -252,7 +293,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         }
 
         ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update') . $meminfo, true);
-        $GLOBALS['ilCtrl']->redirect($this, 'configure');
+        $this->ctrl->redirect($this, 'configure');
     }
 
     /**
@@ -267,7 +308,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $ilTabs->addTab(
             'configure',
             ilPermissionManagerPlugin::getInstance()->txt('tab_configure'),
-            $GLOBALS['ilCtrl']->getLinkTarget($this, 'configure')
+            $this->ctrl->getLinkTarget($this, 'configure')
         );
 
         switch ($cmd) {
