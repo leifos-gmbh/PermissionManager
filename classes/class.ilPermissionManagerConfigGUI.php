@@ -1,8 +1,6 @@
 <?php
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once './Services/Component/classes/class.ilPluginConfigGUI.php';
-
 /**
  * Permission manager configuration
  * @author Stefan Meyer <smeyer.ilias@gmx.de>
@@ -35,6 +33,11 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
      */
     private $logger;
 
+    /**
+     * @var ilTabsGUI
+     */
+    private $tabs;
+
     public function __construct()
     {
         global $DIC;
@@ -43,19 +46,21 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->lng = $DIC->language();
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
+        $this->tabs = $DIC->tabs();
         $this->logger = ilLoggerFactory::getLogger('lfpm');
     }
 
-    protected function save()
+    protected function save() : bool
     {
         if ($this->doSave()) {
             ilUtil::sendSuccess($this->lng->txt('settings_saved'), true);
             $this->ctrl->redirect($this, 'configure');
             return true;
         }
+        return false;
     }
 
-    protected function doSave()
+    protected function doSave() : bool
     {
         $this->logger->debug('Saving confguration options...');
         $form = $this->initConfigurationForm();
@@ -70,14 +75,14 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             $action->setRoleFilter($form->getInput('role_filter'));
             $action->setAction($form->getInput('action'));
             $action->setActionType($form->getInput('action_type'));
-            $action->setTimingStart($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
-            $action->setTimingEnd($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
-            $action->setResetTimingsEnabled($form->getInput('reset'));
+            $action->setTimingStart((int) ($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX) ?? 0));
+            $action->setTimingEnd((int) ($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX) ?? 0));
+            $action->setResetTimingsEnabled((bool) ($form->getInput('reset') ?? false));
 
             $this->logger->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
             $this->logger->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
 
-            $action->setTimingVisibility($form->getInput('visible'));
+            $action->setTimingVisibility((bool) ($form->getInput('visible') ?? false));
 
             ilPermissionManagerSettings::getInstance()->setLogLevel($form->getInput('log_level'));
             ilPermissionManagerSettings::getInstance()->setAction($action);
@@ -87,19 +92,13 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         ilUtil::sendFailure($this->lng->txt('err_check_input'));
         $this->configure($form);
         return false;
-
     }
 
-    /**
-     * Init config form
-     * @return \ilPropertyFormGUI
-     */
-    protected function initConfigurationForm()
+    protected function initConfigurationForm() : ilPropertyFormGUI
     {
         $action = ilPermissionManagerSettings::getInstance()->getAction();
         $this->logger->dump($action, ilLogLevel::DEBUG);
 
-        include_once './Services/Form/classes/class.ilPropertyFormGUI.php';
         $form = new ilPropertyFormGUI();
         $form->setFormAction($this->ctrl->getFormAction($this));
         $form->setTitle($this->getPluginObject()->txt('form_tab_settings'));
@@ -185,7 +184,8 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->logger->dump($action->getRoleFilter(), ilLogLevel::DEBUG);
         $role_filter->setRequired(true);
         $role_filter->setMulti(true);
-        $role_filter->setValue(array_shift($action->getRoleFilter()));
+        $filter_roles = $action->getRoleFilter();
+        $role_filter->setValue(array_shift($filter_roles));
         $role_filter->setMultiValues($action->getRoleFilter());
         $action_perm->addSubItem($role_filter);
 
@@ -225,15 +225,11 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $form->addCommandButton('save', $this->lng->txt('save'));
         $form->addCommandButton('showAffected', $this->getPluginObject()->txt('btn_show_affected'));
         return $form;
-
     }
 
-    /**
-     * Configure plugin
-     */
     protected function configure(ilPropertyFormGUI $form = null)
     {
-        $GLOBALS['ilTabs']->activateTab('configure');
+        $this->tabs->activateTab('configure');
 
         if (!$form instanceof ilPropertyFormGUI) {
             $form = $this->initConfigurationForm();
@@ -244,13 +240,13 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
     /**
      * Save settings
      */
-    protected function showAffected()
+    protected function showAffected() : bool
     {
-
         if ($this->doSave()) {
             $this->ctrl->redirect($this, 'listAffected');
             return true;
         }
+        return false;
     }
 
     /**
@@ -258,7 +254,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
      */
     protected function listAffected()
     {
-        $GLOBALS['ilTabs']->activateTab('configure');
+        $this->tabs->activateTab('configure');
 
         $table = new ilPermissionManagerSummaryTableGUI($this, 'listAffected');
         $table->setAction(ilPermissionManagerSettings::getInstance()->getAction());
@@ -278,13 +274,11 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->tpl->setContent($table->getHTML());
     }
 
-    /**
-     * Execute action
-     */
+
     protected function performUpdate()
     {
         $action = ilPermissionManagerSettings::getInstance()->getAction();
-        $info   = $action->start();
+        $info = $action->start();
 
         $meminfo = '';
         if (function_exists('memory_get_peak_usage')) {
@@ -297,16 +291,9 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->ctrl->redirect($this, 'configure');
     }
 
-    /**
-     * Handles all commmands, default is "configure"
-     */
     public function performCommand($cmd)
     {
-        global $DIC;
-
-        $ilTabs = $DIC->tabs();
-
-        $ilTabs->addTab(
+        $this->tabs->addTab(
             'configure',
             ilPermissionManagerPlugin::getInstance()->txt('tab_configure'),
             $this->ctrl->getLinkTarget($this, 'configure')
@@ -324,7 +311,4 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 
         }
     }
-
 }
-
-?>

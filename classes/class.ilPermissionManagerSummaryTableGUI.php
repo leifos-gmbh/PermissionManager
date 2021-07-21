@@ -1,15 +1,20 @@
 <?php
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once './Services/Table/classes/class.ilTable2GUI.php';
-
 /**
  * Permission manager summary table gui
  * @author Stefan Meyer <smeyer.ilias@gmx.de>
  */
 class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
 {
+    /**
+     * @var null|ilPermissionManagerAction
+     */
     private $action = null;
+
+    /**
+     * @var null|ilPermissionManagerSettings
+     */
     private $settings = null;
 
     /**
@@ -17,26 +22,18 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
      */
     private $objDefinition;
 
-    /**
-     * @param object $a_parent_obj
-     * @param string $a_parent_cmd
-     * @param string $a_template_context
-     */
-    public function __construct($a_parent_obj, $a_parent_cmd = "", $a_template_context = "")
+    public function __construct(object $a_parent_obj, string $a_parent_cmd = "", string $a_template_context = "")
     {
         global $DIC;
 
         $this->objDefinition = $DIC['objDefinition'];
-        $this->lng = $DIC->language();
 
         $this->setId('lfpm');
         parent::__construct($a_parent_obj, $a_parent_cmd, $a_template_context);
     }
 
-    /**
-     * @return ilPermissionManagerSettings
-     */
-    public function getSettings()
+
+    public function getSettings() : ?ilPermissionManagerSettings
     {
         return $this->settings;
     }
@@ -46,12 +43,10 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         $this->settings = $settings;
     }
 
-    /**
-     * Init table
-     */
-    public function init()
+
+    public function init() : void
     {
-        $this->setFormAction($GLOBALS['ilCtrl']->getFormAction($this->getParentObject(), $this->getParentCmd()));
+        $this->setFormAction($this->ctrl->getFormAction($this->getParentObject(), $this->getParentCmd()));
         $this->setTitle(ilPermissionManagerPlugin::getInstance()->txt('table_summary_title'));
         $this->addColumn(ilPermissionManagerPlugin::getInstance()->txt('table_col_type'), 'type', '80%');
         $this->addColumn(ilPermissionManagerPlugin::getInstance()->txt('table_col_num'), 'number', '20%');
@@ -61,19 +56,16 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         $this->setDefaultOrderField('number');
         $this->setDefaultOrderDirection('desc');
 
-        $this->addCommandButton('performUpdate', $GLOBALS['lng']->txt('execute'));
-        $this->addCommandButton('configure', $GLOBALS['lng']->txt('cancel'));
+        $this->addCommandButton('performUpdate', $this->lng->txt('execute'));
+        $this->addCommandButton('configure', $this->lng->txt('cancel'));
     }
 
-    /**
-     *
-     */
-    public function parse()
+    public function parse() : void
     {
         $data = array();
         foreach ($this->getAction()->doSummary() as $obj_type => $info) {
             $row['type'] = $obj_type;
-            $row['num']  = $info['num'];
+            $row['num'] = $info['num'];
 
             $data[] = $row;
         }
@@ -81,10 +73,7 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         $this->setData($data);
     }
 
-    /**
-     * @return ilPermissionManagerAction
-     */
-    public function getAction()
+    public function getAction() : ?ilPermissionManagerAction
     {
         return $this->action;
     }
@@ -94,17 +83,14 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         $this->action = $action;
     }
 
-    public function fillRow($set)
+    protected function fillRow($a_set)
     {
-        if ($this->objDefinition->isPlugin($set['type'])) {
-            $type_str = ilObjectPlugin::lookupTxtById($set['type'], 'objs_' . $set['type']);
+        if ($this->objDefinition->isPlugin($a_set['type'])) {
+            $type_str = ilObjectPlugin::lookupTxtById($a_set['type'], 'objs_' . $a_set['type']);
         } else {
-            $type_str = $this->lng->txt('objs_' . $set['type']);
+            $type_str = $this->lng->txt('objs_' . $a_set['type']);
         }
         $this->tpl->setVariable('OBJ_TYPE', $type_str);
-        $this->tpl->setVariable('OBJ_NUM', $set['num']);
+        $this->tpl->setVariable('OBJ_NUM', $a_set['num']);
     }
-
 }
-
-?>

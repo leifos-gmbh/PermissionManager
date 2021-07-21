@@ -7,25 +7,33 @@
  */
 class ilPermissionManagerSettings
 {
+    /**
+     * @var null|ilPermissionManagerSettings
+     */
     private static $instance = null;
 
-    private $storage = null;
-    private $log_level = 100;
-    private $action = null;
+    /**
+     * @var ilSetting
+     */
+    private $storage;
 
     /**
-     * Singeleton constructor
+     * @var int
      */
+    private $log_level = 100;
+
+    /**
+     * @var null|ilPermissionManagerAction
+     */
+    private $action = null;
+
+
     private function __construct()
     {
-        include_once './Services/Administration/classes/class.ilSetting.php';
         $this->storage = new ilSetting('lfpm');
         $this->init();
     }
 
-    /**
-     * Init (read) settings
-     */
     protected function init()
     {
         $this->setLogLevel($this->getStorage()->get('log_level', $this->log_level));
@@ -34,19 +42,12 @@ class ilPermissionManagerSettings
         $this->setAction(unserialize($ser_action));
     }
 
-    /**
-     * @return ilSetting
-     */
-    protected function getStorage()
+    protected function getStorage() : ilSetting
     {
         return $this->storage;
     }
 
-    /**
-     * Get songeleton instance
-     * @return ilPermissionManagerSettings
-     */
-    public static function getInstance()
+    public static function getInstance() : ilPermissionManagerSettings
     {
         if (!self::$instance) {
             self::$instance = new self();
@@ -54,30 +55,23 @@ class ilPermissionManagerSettings
         return self::$instance;
     }
 
-    /**
-     * Update settings
-     */
-    public function update()
+    public function update() : void
     {
         $this->getStorage()->set('log_level', $this->getLogLevel());
         $this->getStorage()->set('action', serialize($this->getAction()));
     }
 
-    public function getLogLevel()
+    public function getLogLevel() : int
     {
         return $this->log_level;
     }
 
-    public function setLogLevel($a_level)
+    public function setLogLevel(int $a_level)
     {
         $this->log_level = $a_level;
     }
 
-    /**
-     * Get action
-     * @return  \ilPermissionManagerAction
-     */
-    public function getAction()
+    public function getAction() : ilPermissionManagerAction
     {
         return $this->action;
     }
@@ -86,7 +80,4 @@ class ilPermissionManagerSettings
     {
         $this->action = $action;
     }
-
 }
-
-?>

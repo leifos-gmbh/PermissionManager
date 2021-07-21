@@ -1,7 +1,5 @@
 <?php
 
-include_once './Services/UIComponent/classes/class.ilUserInterfaceHookPlugin.php';
-
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
@@ -13,11 +11,7 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
     const PLUGIN_NAME = 'PermissionManager';
     private static $instance = null;
 
-    /**
-     * Get singleton instance
-     * @return lfPermissionManagerPlugin
-     */
-    public static function getInstance()
+    public static function getInstance() : ilPermissionManagerPlugin
     {
         if (self::$instance instanceof self) {
             return self::$instance;
@@ -25,11 +19,7 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
         return self::$instance = new self();
     }
 
-    /**
-     * Auto load implementation
-     * @param string class name
-     */
-    private final function autoLoad($a_classname)
+    final private function autoLoad(string $a_classname)
     {
         $class_file = $this->getClassesDirectory() . '/class.' . $a_classname . '.php';
         if (file_exists($class_file)) {
@@ -48,14 +38,9 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
         foreach (ilLoggerFactory::getLogger('lfpm')->getLogger()->getHandlers() as $handler) {
             $handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
         }
-
     }
 
-    /**
-     * Init auto loader
-     * @return void
-     */
-    protected function initAutoLoad()
+    protected function initAutoLoad() : void
     {
         spl_autoload_register(
             array($this, 'autoLoad')
@@ -69,13 +54,8 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
     {
     }
 
-    /**
-     * Get plugin name
-     * @return string
-     */
-    public function getPluginName()
+    public function getPluginName() : string
     {
         return self::PLUGIN_NAME;
     }
-
 }
