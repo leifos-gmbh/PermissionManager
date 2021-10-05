@@ -299,12 +299,12 @@ class ilPermissionManagerAction
 
     public function resetTimingsEnabled() : bool
     {
-        return $this->reset_timings;
+        return ($this->reset_timings ?? false);
     }
 
     public function getTimingStart() : int
     {
-        return $this->timing_start ?? time();
+        return ($this->timing_start ?? time());
     }
 
     public function setTimingStart(int $a_start)
@@ -314,7 +314,7 @@ class ilPermissionManagerAction
 
     public function getTimingEnd() : int
     {
-        return $this->timing_end ?? time();
+        return ($this->timing_end ?? time());
     }
 
     public function setTimingEnd(int $a_end)
@@ -324,7 +324,7 @@ class ilPermissionManagerAction
 
     public function getTimingVisibility() : int
     {
-        return $this->timing_visibility;
+        return ($this->timing_visibility ?? 0);
     }
 
     public function setTimingVisibility(int $a_stat)
