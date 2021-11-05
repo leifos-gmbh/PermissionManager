@@ -13,7 +13,7 @@ Stefan Meyer meyer@leifos.de
 German, English
 
 ### Quick Installation Guide
-1. Copy the content of this folder in <ILIAS_directory>/Customizing/global/plugins/Services/EventHandling/EventHook/AutoGenerateUsername
+1. Copy the content of this folder in <ILIAS_directory>/Customizing/global/plugins/Services/UIComponent/UserInterfaceHook/PermissionManager
 
 2. Access to ILIAS and go to the administration page.
 
