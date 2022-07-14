@@ -1,42 +1,22 @@
-<?php
+<?php declare(strict_types=1);
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
  * Permission manager configuration
  * @author Stefan Meyer <smeyer.ilias@gmx.de>
+ * @ilCtrl_IsCalledBy ilPermissionManagerConfigGUI: ilObjComponentSettingsGUI
  */
 class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 {
+    private ilObjectDefinition $objDefinition;
+    private ilLanguage $lng;
+    private ilCtrl $ctrl;
+    private ilGlobalTemplateInterface $tpl;
+    private ilLogger $logger;
+    private ilTabsGUI $tabs;
 
-    /**
-     * @var ilObjectDefinition
-     */
-    private $objDefinition;
-
-    /**
-     * @var ilLanguage
-     */
-    private $lng;
-
-    /**
-     * @var ilCtrl
-     */
-    private $ctrl;
-
-    /**
-     * @var ilTemplate
-     */
-    private $tpl;
-
-    /**
-     * @var ilLogger
-     */
-    private $logger;
-
-    /**
-     * @var ilTabsGUI
-     */
-    private $tabs;
+    private ilPermissionManagerPlugin $plugin;
+    private ilPermissionManagerSettings $settings;
 
     public function __construct()
     {
@@ -47,13 +27,16 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->ctrl = $DIC->ctrl();
         $this->tpl = $DIC->ui()->mainTemplate();
         $this->tabs = $DIC->tabs();
-        $this->logger = ilLoggerFactory::getLogger('lfpm');
+        $this->logger = $DIC->logger()->lfpm();
+
+        $this->plugin = ilPermissionManagerPlugin::getInstance();
+        $this->settings = ilPermissionManagerSettings::getInstance();
     }
 
     protected function save() : bool
     {
         if ($this->doSave()) {
-            ilUtil::sendSuccess($this->lng->txt('settings_saved'), true);
+            $this->tpl->setOnScreenMessage('success', $this->lng->txt('settings_saved'), true);
             $this->ctrl->redirect($this, 'configure');
             return true;
         }
@@ -65,16 +48,15 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->logger->debug('Saving confguration options...');
         $form = $this->initConfigurationForm();
         if ($form->checkInput()) {
-            $this->logger->dump($_POST, ilLogLevel::DEBUG);
             $action = new ilPermissionManagerAction();
-            $action->setRepositoryNode($form->getInput('node'));
+            $action->setRepositoryNode((int) $form->getInput('node'));
             $action->setTypeFilter($form->getInput('type_filter'));
-            $action->setAdvancedTypeFilter($form->getInput('adv_type_filter'));
-            $action->setTemplate($form->getInput('template'));
-            $action->setChangeRoleTemplates($form->getInput('adapt_templates'));
+            $action->setAdvancedTypeFilter((int) $form->getInput('adv_type_filter'));
+            $action->setTemplate((int) $form->getInput('template'));
+            $action->setChangeRoleTemplates((bool)$form->getInput('adapt_templates'));
             $action->setRoleFilter($form->getInput('role_filter'));
-            $action->setAction($form->getInput('action'));
-            $action->setActionType($form->getInput('action_type'));
+            $action->setAction((int) $form->getInput('action'));
+            $action->setActionType((int) $form->getInput('action_type'));
             $action->setTimingStart((int) ($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX) ?? 0));
             $action->setTimingEnd((int) ($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX) ?? 0));
             $action->setResetTimingsEnabled((bool) ($form->getInput('reset') ?? false));
@@ -84,20 +66,19 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 
             $action->setTimingVisibility((bool) ($form->getInput('visible') ?? false));
 
-            ilPermissionManagerSettings::getInstance()->setLogLevel($form->getInput('log_level'));
-            ilPermissionManagerSettings::getInstance()->setAction($action);
-            ilPermissionManagerSettings::getInstance()->update();
+            $this->settings->setLogLevel((int) $form->getInput('log_level'));
+            $this->settings->setAction($action);
+            $this->settings->update();
             return true;
         }
-        ilUtil::sendFailure($this->lng->txt('err_check_input'));
+        $this->tpl->setOnScreenMessage('failure', $this->lng->txt('err_check_input'));
         $this->configure($form);
         return false;
     }
 
     protected function initConfigurationForm() : ilPropertyFormGUI
     {
-        $action = ilPermissionManagerSettings::getInstance()->getAction();
-        $this->logger->dump($action, ilLogLevel::DEBUG);
+        $action = $this->settings->getAction();
 
         $form = new ilPropertyFormGUI();
         $form->setFormAction($this->ctrl->getFormAction($this));
@@ -107,14 +88,14 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $this->lng->loadLanguageModule('log');
         $level = new ilSelectInputGUI($this->getPluginObject()->txt('form_tab_settings_loglevel'), 'log_level');
         $level->setOptions(ilLogLevel::getLevelOptions());
-        $level->setValue(ilPermissionManagerSettings::getInstance()->getLogLevel());
+        $level->setValue((string) $this->settings->getLogLevel());
         $form->addItem($level);
 
         $rep_node = new ilNumberInputGUI($this->getPluginObject()->txt('form_rep_node'), 'node');
         $rep_node->setMinValue(1);
         $rep_node->setRequired(true);
         $rep_node->setSize(7);
-        $rep_node->setValue($action->getRepositoryNode());
+        $rep_node->setValue((string) $action->getRepositoryNode());
         $rep_node->setInfo($this->getPluginObject()->txt('form_rep_node_info'));
         $form->addItem($rep_node);
 
@@ -137,47 +118,62 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         }
         asort($options);
         foreach ($options as $type_str => $translation) {
-            $type_option = new ilRadioOption($translation, $type_str);
+            $type_option = new ilCheckboxOption($translation, $type_str);
             $type_filter->addOption($type_option);
         }
         $form->addItem($type_filter);
 
         $adv_filter = new ilSelectInputGUI($this->getPluginObject()->txt('form_type_adv_filter'), 'adv_type_filter');
-        $adv_filter->setValue($action->getAdvancedTypeFilter());
+        $adv_filter->setValue((string)$action->getAdvancedTypeFilter());
         $adv_filter->setOptions(ilPermissionManagerAction::getAdvancedTypeFilterOptions());
         $adv_filter->setRequired(true);
         $form->addItem($adv_filter);
 
         $action_type = new ilRadioGroupInputGUI($this->getPluginObject()->txt('action_type'), 'action_type');
-        $action_type->setValue($action->getActionType());
+        $action_type->setValue((string) $action->getActionType());
         $action_type->setRequired(true);
 
-        $action_perm = new ilRadioOption($this->getPluginObject()->txt('action_type_adjust_perm'), ilPermissionManagerAction::ACTION_TYPE_PERMISSIONS);
+        $action_perm = new ilRadioOption(
+            $this->getPluginObject()->txt('action_type_adjust_perm'),
+            (string) ilPermissionManagerAction::ACTION_TYPE_PERMISSIONS
+        );
         $action_type->addOption($action_perm);
 
-        $action_availability = new ilRadioOption($this->getPluginObject()->txt('action_type_adjust_availability'), ilPermissionManagerAction::ACTION_TYPE_AVAILABILITY);
+        $action_availability = new ilRadioOption(
+            $this->getPluginObject()->txt('action_type_adjust_availability'),
+            (string) ilPermissionManagerAction::ACTION_TYPE_AVAILABILITY
+        );
         $action_type->addOption($action_availability);
 
         $templates = new ilSelectInputGUI($this->getPluginObject()->txt('form_rolt'), 'template');
-        $templates->setValue($action->getTemplate());
+        $templates->setValue((string) $action->getTemplate());
         $templates->setRequired(true);
         $templates->setOptions(ilPermissionManagerAction::getTemplateOptions());
         $action_perm->addSubItem($templates);
 
         $action_ar = new ilRadioGroupInputGUI($this->getPluginObject()->txt('form_action'), 'action');
-        $action_ar->setValue($action->getAction());
+        $action_ar->setValue((string) $action->getAction());
         $action_ar->setRequired(true);
 
-        $options_add = new ilRadioOption($this->getPluginObject()->txt('action_add'), ilPermissionManagerAction::ACTION_ADD);
+        $options_add = new ilRadioOption(
+            $this->getPluginObject()->txt('action_add'),
+            (string) ilPermissionManagerAction::ACTION_ADD
+        );
         $action_ar->addOption($options_add);
 
-        $options_remove = new ilRadioOption($this->getPluginObject()->txt('action_remove'), ilPermissionManagerAction::ACTION_REMOVE);
+        $options_remove = new ilRadioOption(
+            $this->getPluginObject()->txt('action_remove'),
+            (string) ilPermissionManagerAction::ACTION_REMOVE
+        );
         $action_ar->addOption($options_remove);
         $action_perm->addSubItem($action_ar);
 
-        $adapt_templates = new ilCheckboxInputGUI($this->getPluginObject()->txt('form_action_templates'), 'adapt_templates');
+        $adapt_templates = new ilCheckboxInputGUI(
+            $this->getPluginObject()->txt('form_action_templates'),
+            'adapt_templates'
+        );
         $adapt_templates->setChecked($action->getChangeRoleTemplates());
-        $adapt_templates->setValue(1);
+        $adapt_templates->setValue('1');
         $action_perm->addSubItem($adapt_templates);
 
         $role_filter = new ilTextInputGUI($this->getPluginObject()->txt('form_role_filter'), 'role_filter');
@@ -210,13 +206,13 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 
         $isv = new ilCheckboxInputGUI($this->lng->txt('crs_timings_visibility_short'), 'visible');
         $isv->setInfo($this->lng->txt('crs_timings_visibility'));
-        $isv->setValue(1);
+        $isv->setValue('1');
         $isv->setChecked($action->getTimingVisibility() ? true : false);
         $action_availability->addSubItem($isv);
 
         $reset = new ilCheckboxInputGUI($this->getPluginObject()->txt('reset_timings'), 'reset');
         $reset->setInfo($this->getPluginObject()->txt('reset_timings_info'));
-        $reset->setValue(1);
+        $reset->setValue('1');
         $reset->setChecked($action->resetTimingsEnabled());
         $action_availability->addSubItem($reset);
 
@@ -227,7 +223,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         return $form;
     }
 
-    protected function configure(ilPropertyFormGUI $form = null)
+    protected function configure(?ilPropertyFormGUI $form = null) : void
     {
         $this->tabs->activateTab('configure');
 
@@ -252,13 +248,13 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
     /**
      * List affected objects by configuration
      */
-    protected function listAffected()
+    protected function listAffected() : void
     {
         $this->tabs->activateTab('configure');
 
         $table = new ilPermissionManagerSummaryTableGUI($this, 'listAffected');
-        $table->setAction(ilPermissionManagerSettings::getInstance()->getAction());
-        $table->setSettings(ilPermissionManagerSettings::getInstance());
+        $table->setAction($this->settings->getAction());
+        $table->setSettings($this->settings);
         $table->init();
         $table->parse();
 
@@ -268,16 +264,16 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             $meminfo .= ((int) (memory_get_peak_usage() / 1024 / 1024));
             $meminfo .= ' MB';
 
-            ilUtil::sendInfo($meminfo);
+            $this->tpl->setOnScreenMessage('info', $meminfo);
         }
 
         $this->tpl->setContent($table->getHTML());
     }
 
 
-    protected function performUpdate()
+    protected function performUpdate() : void
     {
-        $action = ilPermissionManagerSettings::getInstance()->getAction();
+        $action = $this->settings->getAction();
         $info = $action->start();
 
         $meminfo = '';
@@ -287,15 +283,19 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             $meminfo .= ' MB';
         }
 
-        ilUtil::sendSuccess($this->getPluginObject()->txt('executed_permission_update') . $meminfo, true);
+        $this->tpl->setOnScreenMessage(
+            'success',
+            $this->getPluginObject()->txt('executed_permission_update') . $meminfo,
+            true
+        );
         $this->ctrl->redirect($this, 'configure');
     }
 
-    public function performCommand($cmd)
+    public function performCommand(string $cmd) : void
     {
         $this->tabs->addTab(
             'configure',
-            ilPermissionManagerPlugin::getInstance()->txt('tab_configure'),
+            $this->plugin->txt('tab_configure'),
             $this->ctrl->getLinkTarget($this, 'configure')
         );
 

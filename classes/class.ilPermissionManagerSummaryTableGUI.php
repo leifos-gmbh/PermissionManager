@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
@@ -7,26 +7,19 @@
  */
 class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
 {
-    /**
-     * @var null|ilPermissionManagerAction
-     */
-    private $action = null;
+    private ?ilPermissionManagerAction $action = null;
+    private ?ilPermissionManagerSettings $settings = null;
+    private ilObjectDefinition $objDefinition;
 
-    /**
-     * @var null|ilPermissionManagerSettings
-     */
-    private $settings = null;
-
-    /**
-     * @var ilObjectDefinition
-     */
-    private $objDefinition;
+    private ilPermissionManagerPlugin $plugin;
 
     public function __construct(object $a_parent_obj, string $a_parent_cmd = "", string $a_template_context = "")
     {
         global $DIC;
 
         $this->objDefinition = $DIC['objDefinition'];
+
+        $this->plugin = ilPermissionManagerPlugin::getInstance();
 
         $this->setId('lfpm');
         parent::__construct($a_parent_obj, $a_parent_cmd, $a_template_context);
@@ -38,7 +31,7 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         return $this->settings;
     }
 
-    public function setSettings(ilPermissionManagerSettings $settings)
+    public function setSettings(ilPermissionManagerSettings $settings) : void
     {
         $this->settings = $settings;
     }
@@ -47,11 +40,22 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
     public function init() : void
     {
         $this->setFormAction($this->ctrl->getFormAction($this->getParentObject(), $this->getParentCmd()));
-        $this->setTitle(ilPermissionManagerPlugin::getInstance()->txt('table_summary_title'));
-        $this->addColumn(ilPermissionManagerPlugin::getInstance()->txt('table_col_type'), 'type', '80%');
-        $this->addColumn(ilPermissionManagerPlugin::getInstance()->txt('table_col_num'), 'number', '20%');
+        $this->setTitle($this->plugin->txt('table_summary_title'));
+        $this->addColumn(
+            $this->plugin->txt('table_col_type'),
+            'type',
+            '80%'
+        );
+        $this->addColumn(
+            $this->plugin->txt('table_col_num'),
+            'number',
+            '20%'
+        );
 
-        $this->setRowTemplate("tpl.summary_row.html", substr(ilPermissionManagerPlugin::getInstance()->getDirectory(), 2));
+        $this->setRowTemplate(
+            "tpl.summary_row.html",
+            $this->plugin->getDirectory()
+        );
 
         $this->setDefaultOrderField('number');
         $this->setDefaultOrderDirection('desc');
@@ -78,12 +82,12 @@ class ilPermissionManagerSummaryTableGUI extends ilTable2GUI
         return $this->action;
     }
 
-    public function setAction(ilPermissionManagerAction $action)
+    public function setAction(ilPermissionManagerAction $action) : void
     {
         $this->action = $action;
     }
 
-    protected function fillRow($a_set)
+    protected function fillRow($a_set) : void
     {
         if ($this->objDefinition->isPlugin($a_set['type'])) {
             $type_str = ilObjectPlugin::lookupTxtById($a_set['type'], 'objs_' . $a_set['type']);

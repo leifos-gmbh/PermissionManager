@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
@@ -7,26 +7,10 @@
  */
 class ilPermissionManagerSettings
 {
-    /**
-     * @var null|ilPermissionManagerSettings
-     */
-    private static $instance = null;
-
-    /**
-     * @var ilSetting
-     */
-    private $storage;
-
-    /**
-     * @var int
-     */
-    private $log_level = 100;
-
-    /**
-     * @var null|ilPermissionManagerAction
-     */
-    private $action = null;
-
+    private static ?ilPermissionManagerSettings $instance = null;
+    private ilSetting $storage;
+    private int $log_level = 100;
+    private ?ilPermissionManagerAction $action = null;
 
     private function __construct()
     {
@@ -34,9 +18,9 @@ class ilPermissionManagerSettings
         $this->init();
     }
 
-    protected function init()
+    protected function init() : void
     {
-        $this->setLogLevel($this->getStorage()->get('log_level', $this->log_level));
+        $this->setLogLevel((int) $this->getStorage()->get('log_level', (string) $this->log_level));
 
         $ser_action = $this->getStorage()->get('action', serialize(new ilPermissionManagerAction()));
         $this->setAction(unserialize($ser_action));
@@ -57,7 +41,7 @@ class ilPermissionManagerSettings
 
     public function update() : void
     {
-        $this->getStorage()->set('log_level', $this->getLogLevel());
+        $this->getStorage()->set('log_level', (string) $this->getLogLevel());
         $this->getStorage()->set('action', serialize($this->getAction()));
     }
 
@@ -66,7 +50,7 @@ class ilPermissionManagerSettings
         return $this->log_level;
     }
 
-    public function setLogLevel(int $a_level)
+    public function setLogLevel(int $a_level) : void
     {
         $this->log_level = $a_level;
     }
@@ -76,7 +60,7 @@ class ilPermissionManagerSettings
         return $this->action;
     }
 
-    public function setAction(ilPermissionManagerAction $action = null)
+    public function setAction(ilPermissionManagerAction $action = null) : void
     {
         $this->action = $action;
     }

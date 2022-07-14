@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
 /**
@@ -7,59 +7,63 @@
  */
 class ilPermissionManagerAction
 {
-    const MODE_SUMMARY = 1;
-    const MODE_UPDATE = 2;
+    protected const MODE_SUMMARY = 1;
+    protected const MODE_UPDATE = 2;
 
-    const ADV_TYPE_NONE = 0;
-    const ADV_TYPE_IN_COURSES = 1;
-    const ADV_TYPE_IN_GROUPS = 2;
-    const ADV_TYPE_OUTSIDE_COURSES = 3;
-    const ADV_TYPE_OUTSIDE_GROUPS = 4;
-    const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 5;
+    protected const ADV_TYPE_NONE = 0;
+    protected const ADV_TYPE_IN_COURSES = 1;
+    protected const ADV_TYPE_IN_GROUPS = 2;
+    protected const ADV_TYPE_OUTSIDE_COURSES = 3;
+    protected const ADV_TYPE_OUTSIDE_GROUPS = 4;
+    protected const ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS = 5;
 
-    const ACTION_TYPE_PERMISSIONS = 0;
-    const ACTION_TYPE_AVAILABILITY = 1;
+    public const ACTION_TYPE_PERMISSIONS = 0;
+    public const ACTION_TYPE_AVAILABILITY = 1;
 
-    const ACTION_ADD = 1;
-    const ACTION_REMOVE = 2;
+    public const ACTION_ADD = 1;
+    public const ACTION_REMOVE = 2;
 
-    private $rep_node = 0;
-    private $type_filter = [];
-    private $advanced_type_filter = 0;
-    private $template_id = 0;
-    private $action_type = self::ACTION_TYPE_PERMISSIONS;
-    private $action = 0;
-    private $change_role_templates = false;
-    private $role_filter = [];
-    private $timing_start = 0;
-    private $timing_end = 0;
-    private $timing_visibility = 0;
-    private $reset_timings = false;
+    private int $rep_node = 0;
 
     /**
-     * @var ilTree
+     * @var string[]
      */
-    private $tree;
+    private array $type_filter = [];
+    private int $advanced_type_filter = 0;
+    private int $template_id = 0;
+    private int $action_type = self::ACTION_TYPE_PERMISSIONS;
+    private int $action = 0;
+    private bool $change_role_templates = false;
 
     /**
-     * @var ilLogger
+     * @var string[]
      */
-    private $logger;
+    private array $role_filter = [];
+    private int $timing_start = 0;
+    private int $timing_end = 0;
+    private bool $timing_visibility = false;
+    private bool $reset_timings = false;
 
-    /**
-     * @var ilObjectDefinition
-     */
-    private $objDefinition;
+    private ilTree $tree;
+    private ilLogger $logger;
+    private ilObjectDefinition $objDefinition;
+    private ilRbacAdmin $rbacadmin;
+    private ilRbacReview $rbacreview;
 
     public function __construct()
     {
         global $DIC;
 
         $this->tree = $DIC->repositoryTree();
-        $this->logger = ilLoggerFactory::getLogger('lfpm');
+        $this->logger = $DIC->logger()->lfpm();
         $this->objDefinition = $DIC['objDefinition'];
+        $this->rbacadmin = $DIC->rbac()->admin();
+        $this->rbacreview = $DIC->rbac()->review();
     }
 
+    /**
+     * @return string[]
+     */
     public static function getAdvancedTypeFilterOptions() : array
     {
         return array(
@@ -72,6 +76,9 @@ class ilPermissionManagerAction
         );
     }
 
+    /**
+     * @return string[]
+     */
     public static function getTemplateOptions() : array
     {
         global $DIC;
@@ -84,49 +91,71 @@ class ilPermissionManagerAction
 
         $options[0] = $lng->txt('select_one');
         while ($row = $res->fetchRow(ilDBConstants::FETCHMODE_OBJECT)) {
-            $options[$row->obj_id] = $row->title;
+            $options[(int) $row->obj_id] = (string) $row->title;
         }
         return $options;
     }
 
-    public function setRepositoryNode(int $a_node)
+    public function setRepositoryNode(int $a_node) : void
     {
         $this->rep_node = $a_node;
     }
 
-    public function setTemplate(int $a_template_id)
+    public function setTemplate(int $a_template_id) : void
     {
         $this->template_id = $a_template_id;
     }
 
-    public function setResetTimingsEnabled(int $a_status)
+    public function setResetTimingsEnabled(bool $a_status) : void
     {
         $this->reset_timings = $a_status;
     }
 
+    /**
+     * Magic
+     * @return string[]
+     */
     public function __sleep() : array
     {
-        return array('rep_node', 'type_filter', 'advanced_type_filter', 'template_id', 'action', 'action_type', 'change_role_templates', 'role_filter', 'timing_start', 'timing_end', 'timing_visibility', 'reset_timings');
+        return array(
+            'rep_node',
+            'type_filter',
+            'advanced_type_filter',
+            'template_id',
+            'action',
+            'action_type',
+            'change_role_templates',
+            'role_filter',
+            'timing_start',
+            'timing_end',
+            'timing_visibility',
+            'reset_timings'
+        );
     }
 
     /**
      * Magic
      */
-    public function __wakeup()
+    public function __wakeup() : void
     {
         global $DIC;
 
         $this->tree = $DIC->repositoryTree();
-        $this->logger = ilLoggerFactory::getLogger('lfpm');
+        $this->logger = $DIC->logger()->lfpm();
         $this->objDefinition = $DIC['objDefinition'];
+        $this->rbacadmin = $DIC->rbac()->admin();
+        $this->rbacreview = $DIC->rbac()->review();
     }
 
+    /**
+     * @return array<string, array<string, int>>
+     */
     public function doSummary() : array
     {
         $this->tree->useCache(false);
 
         $info_by_type = array();
-        // initializte $info array();
+        // initialize $info array();
         foreach ($this->getTypeFilter() as $type) {
             $info_by_type[$type]['num'] = 0;
         }
@@ -134,22 +163,35 @@ class ilPermissionManagerAction
         $this->logger->dump($info_by_type, ilLogLevel::DEBUG);
 
         // walk through repository tree
-        $this->walkThroughTree($this->tree->getNodeData($this->getRepositoryNode()), self::MODE_SUMMARY, $info_by_type);
+        $this->walkThroughTree(
+            $this->tree->getNodeData($this->getRepositoryNode()),
+            self::MODE_SUMMARY,
+            $info_by_type
+        );
 
         return $info_by_type;
     }
 
+    /**
+     * @return string[]
+     */
     public function getTypeFilter() : array
     {
         return $this->type_filter;
     }
 
-    public function setTypeFilter(array $a_filter)
+    /**
+     * @param string[] $a_filter
+     */
+    public function setTypeFilter(array $a_filter) : void
     {
         $this->type_filter = $a_filter;
     }
 
-    private function walkThroughTree(array $a_node, int $a_mode, array &$info_by_type)
+    /**
+     * @param array<string, array<string, int>> $info_by_type
+     */
+    private function walkThroughTree(array $a_node, int $a_mode, array &$info_by_type) : void
     {
         $is_handled_type = $this->isHandledType($a_node);
         if ($is_handled_type) {
@@ -164,7 +206,7 @@ class ilPermissionManagerAction
             $this->updateContainer($a_node);
         }
 
-        foreach ($this->tree->getChilds($a_node['child']) as $child) {
+        foreach ($this->tree->getChilds((int) $a_node['child']) as $child) {
             if ($child['type'] == 'adm') {
                 continue;
             }
@@ -192,33 +234,33 @@ class ilPermissionManagerAction
         }
         switch ($this->getAdvancedTypeFilter()) {
             case self::ADV_TYPE_IN_COURSES:
-                if (!$this->tree->checkForParentType($a_node['child'], 'crs', true)) {
+                if (!$this->tree->checkForParentType((int) $a_node['child'], 'crs', true)) {
                     return false;
                 }
                 break;
 
             case self::ADV_TYPE_IN_GROUPS:
-                if (!$this->tree->checkForParentType($a_node['child'], 'grp', true)) {
+                if (!$this->tree->checkForParentType((int) $a_node['child'], 'grp', true)) {
                     return false;
                 }
                 break;
 
             case self::ADV_TYPE_OUTSIDE_COURSES:
-                if ($this->tree->checkForParentType($a_node['child'], 'crs', true)) {
+                if ($this->tree->checkForParentType((int) $a_node['child'], 'crs', true)) {
                     return false;
                 }
                 break;
 
             case self::ADV_TYPE_OUTSIDE_GROUPS:
-                if ($this->tree->checkForParentType($a_node['child'], 'grp', true)) {
+                if ($this->tree->checkForParentType((int) $a_node['child'], 'grp', true)) {
                     return false;
                 }
                 break;
 
             case self::ADV_TYPE_OUTSIDE_COURSE_AND_GROUPS:
                 if (
-                    $this->tree->checkForParentType($a_node['child'], 'crs', true) ||
-                    $this->tree->checkForParentType($a_node['child'], 'grp', true)
+                    $this->tree->checkForParentType((int) $a_node['child'], 'crs', true) ||
+                    $this->tree->checkForParentType((int) $a_node['child'], 'grp', true)
                 ) {
                     return false;
                 }
@@ -233,13 +275,13 @@ class ilPermissionManagerAction
         return $this->advanced_type_filter;
     }
 
-    public function setAdvancedTypeFilter(int $a_adv_filter)
+    public function setAdvancedTypeFilter(int $a_adv_filter) : void
     {
         $this->advanced_type_filter = $a_adv_filter;
     }
 
 
-    private function updateNode(array $a_node)
+    private function updateNode(array $a_node) : void
     {
         $this->logger->debug('Update node of type: ' . $a_node['type'] . '(' . $a_node['title'] . ')');
 
@@ -259,7 +301,6 @@ class ilPermissionManagerAction
             $this->logger->debug('Update object permissions');
             $this->updateObjectPermissions($a_node, $role);
         }
-        return;
     }
 
     public function getActionType() : int
@@ -267,34 +308,33 @@ class ilPermissionManagerAction
         return $this->action_type;
     }
 
-    public function setActionType(int $a_type)
+    public function setActionType(int $a_type) : void
     {
         $this->action_type = $a_type;
     }
 
-    private function updateAvailability(array $node) : bool
+    private function updateAvailability(array $node) : void
     {
         $this->logger->dump($node);
 
         // creates default entry
-        $item = ilObjectActivation::getItem($node['child']);
+        $item = ilObjectActivation::getItem((int) $node['child']);
 
         $this->logger->dump($item);
 
-        if ($this->resetTimingsEnabled() == true) {
-            $activation = new ilObjectActivation();
+        $activation = new ilObjectActivation();
+
+        if ($this->resetTimingsEnabled()) {
             $activation->setTimingType(ilObjectActivation::TIMINGS_DEACTIVATED);
-            $activation->update($node['child']);
-            return true;
+            $activation->update((int) $node['child']);
+            return;
         }
 
-        $activation = new ilObjectActivation();
         $activation->setTimingType(ilObjectActivation::TIMINGS_ACTIVATION);
         $activation->setTimingStart($this->getTimingStart());
         $activation->setTimingEnd($this->getTimingEnd());
         $activation->toggleVisible($this->getTimingVisibility());
-        $activation->update($node['child']);
-        return true;
+        $activation->update((int) $node['child']);
     }
 
     public function resetTimingsEnabled() : bool
@@ -307,7 +347,7 @@ class ilPermissionManagerAction
         return ($this->timing_start ?? time());
     }
 
-    public function setTimingStart(int $a_start)
+    public function setTimingStart(int $a_start) : void
     {
         $this->timing_start = $a_start;
     }
@@ -317,17 +357,17 @@ class ilPermissionManagerAction
         return ($this->timing_end ?? time());
     }
 
-    public function setTimingEnd(int $a_end)
+    public function setTimingEnd(int $a_end) : void
     {
         $this->timing_end = $a_end;
     }
 
-    public function getTimingVisibility() : int
+    public function getTimingVisibility() : bool
     {
-        return ($this->timing_visibility ?? 0);
+        return ($this->timing_visibility ?? false);
     }
 
-    public function setTimingVisibility(int $a_stat)
+    public function setTimingVisibility(bool $a_stat) : void
     {
         $this->timing_visibility = $a_stat;
     }
@@ -335,12 +375,8 @@ class ilPermissionManagerAction
 
     private function applyRoleFilter(array $a_node) : array
     {
-        global $DIC;
-
-        $rbacreview = $DIC->rbac()->review();
-
         $valid_roles = array();
-        foreach ($rbacreview->getParentRoleIds($a_node['child'], $this->getChangeRoleTemplates()) as $role) {
+        foreach ($this->rbacreview->getParentRoleIds((int) $a_node['child'], $this->getChangeRoleTemplates()) as $role) {
             foreach ($this->getRoleFilter() as $filter) {
                 $filter = trim($filter);
                 $role_title = trim($role['title']);
@@ -365,30 +401,32 @@ class ilPermissionManagerAction
         return $this->change_role_templates;
     }
 
-    public function setChangeRoleTemplates(bool $a_stat)
+    public function setChangeRoleTemplates(bool $a_stat) : void
     {
         $this->change_role_templates = $a_stat;
     }
 
+    /**
+     * @return string[]
+     */
     public function getRoleFilter() : array
     {
         return $this->role_filter;
     }
 
-    public function setRoleFilter(array $a_filter)
+    /**
+     * @param string[] $a_filter
+     */
+    public function setRoleFilter(array $a_filter) : void
     {
         $this->role_filter = $a_filter;
     }
 
-    private function updateTemplatePermissions(array $node, array $role)
+    private function updateTemplatePermissions(array $node, array $role) : void
     {
-        global $DIC;
-
-        $rbacadmin = $DIC->rbac()->admin();
-
         if ($this->getAction() == self::ACTION_ADD) {
             $this->logger->debug('Action add permissions');
-            $rbacadmin->copyRolePermissionUnion(
+            $this->rbacadmin->copyRolePermissionUnion(
                 $this->getTemplate(),
                 ROLE_FOLDER_ID,
                 $role['obj_id'],
@@ -399,7 +437,7 @@ class ilPermissionManagerAction
         }
         if ($this->getAction() == self::ACTION_REMOVE) {
             $this->logger->debug('Action remove permissions');
-            $rbacadmin->copyRolePermissionSubtract(
+            $this->rbacadmin->copyRolePermissionSubtract(
                 $this->getTemplate(),
                 ROLE_FOLDER_ID,
                 $role['obj_id'],
@@ -413,7 +451,7 @@ class ilPermissionManagerAction
         return $this->action;
     }
 
-    public function setAction(int $a_action)
+    public function setAction(int $a_action) : void
     {
         $this->action = $a_action;
     }
@@ -425,16 +463,11 @@ class ilPermissionManagerAction
 
     private function updateObjectPermissions(array $node, array $role) : void
     {
-        global $DIC;
-
-        $rbacreview = $DIC->rbac()->review();
-        $rbacadmin = $DIC->rbac()->admin();
-
-        $operations = $rbacreview->getOperationsOfRole($this->getTemplate(), $node['type'], ROLE_FOLDER_ID);
+        $operations = $this->rbacreview->getOperationsOfRole($this->getTemplate(), $node['type'], ROLE_FOLDER_ID);
         $this->logger->debug('Operations for type ' . $node['type']);
         $this->logger->dump($operations, ilLogLevel::DEBUG);
 
-        $active = $rbacreview->getActiveOperationsOfRole($node['child'], $role['obj_id']);
+        $active = $this->rbacreview->getActiveOperationsOfRole((int) $node['child'], $role['obj_id']);
         $this->logger->debug('Active operations for ' . $node['title']);
         $this->logger->dump($active, ilLogLevel::DEBUG);
 
@@ -449,11 +482,11 @@ class ilPermissionManagerAction
         $this->logger->debug('New operations for ' . $node['title']);
         $this->logger->dump($new_permissions, ilLogLevel::DEBUG);
 
-        $rbacadmin->revokePermission($node['child'], $role['obj_id']);
-        $rbacadmin->grantPermission($role['obj_id'], (array) $new_permissions, $node['child']);
+        $this->rbacadmin->revokePermission((int) $node['child'], $role['obj_id']);
+        $this->rbacadmin->grantPermission($role['obj_id'], $new_permissions, (int) $node['child']);
     }
 
-    private function updateContainer(array $a_node)
+    private function updateContainer(array $a_node) : void
     {
         return;
 
@@ -476,6 +509,7 @@ class ilPermissionManagerAction
 
     /**
      * Start permission manipulation
+     * @return array<string, array<string, int>>
      */
     public function start() : array
     {
@@ -487,7 +521,10 @@ class ilPermissionManagerAction
         $this->logger->dump($info_by_type, ilLogLevel::DEBUG);
 
         // walk through repository tree
-        $this->walkThroughTree($this->tree->getNodeData($this->getRepositoryNode()), self::MODE_UPDATE, $info_by_type);
+        $this->walkThroughTree(
+            $this->tree->getNodeData($this->getRepositoryNode()),
+            self::MODE_UPDATE,
+            $info_by_type);
 
         return $info_by_type;
     }
