@@ -50,19 +50,24 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         if ($form->checkInput()) {
             $action = new ilPermissionManagerAction();
             $action->setRepositoryNode((int) $form->getInput('node'));
-            $action->setTypeFilter($form->getInput('type_filter'));
+            $action->setTypeFilter($form->getInput('type_filter') ?? []);
             $action->setAdvancedTypeFilter((int) $form->getInput('adv_type_filter'));
             $action->setTemplate((int) $form->getInput('template'));
             $action->setChangeRoleTemplates((bool)$form->getInput('adapt_templates'));
-            $action->setRoleFilter($form->getInput('role_filter'));
+            $action->setRoleFilter($form->getInput('role_filter') ?? []);
             $action->setAction((int) $form->getInput('action'));
             $action->setActionType((int) $form->getInput('action_type'));
-            $action->setTimingStart((int) ($form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX) ?? 0));
-            $action->setTimingEnd((int) ($form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX) ?? 0));
+            $action->setTimingStart(
+                is_object($form->getItemByPostVar('timing_start')->getDate()) ?
+                    (int) $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX) :
+                    0
+            );
+            $action->setTimingEnd(
+                is_object($form->getItemByPostVar('timing_end')->getDate()) ?
+                    (int) $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX) :
+                    0
+            );
             $action->setResetTimingsEnabled((bool) ($form->getInput('reset') ?? false));
-
-            $this->logger->debug('Starting time is: ' . $form->getItemByPostVar('timing_start')->getDate()->get(IL_CAL_UNIX));
-            $this->logger->debug('Ending time is: ' . $form->getItemByPostVar('timing_end')->getDate()->get(IL_CAL_UNIX));
 
             $action->setTimingVisibility((bool) ($form->getInput('visible') ?? false));
 
