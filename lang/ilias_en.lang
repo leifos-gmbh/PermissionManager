@@ -8,8 +8,9 @@ form_rolt#:#Role Template
 form_action#:#Action
 action_add#:#Add Permissions
 action_remove#:#Remove Permissions
-form_action_templates#:#Adapt Role Templates
+form_action_templates#:#Adapt Default Permissions
 form_role_filter#:#Role Filter
+form_role_filter_info#:#Role names follow the pattern il_[Obj. Type]_[Role]_[Obj. Ref. ID]. Enter here parts of the name to filter for specific roles, e.g. "crs" to only change roles of courses, "admin" to only change adminsitrator roles, or "crs_admin" to only change course administrators.
 btn_show_affected#:#Show Number of Changed Objects
 table_col_type#:#Object Type
 table_col_num#:#Number of Changed Objects

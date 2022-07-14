@@ -89,6 +89,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
             ilPermissionManagerSettings::getInstance()->update();
             return true;
         }
+        $form->setValuesByPost();
         ilUtil::sendFailure($this->lng->txt('err_check_input'));
         $this->configure($form);
         return false;
@@ -187,6 +188,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $filter_roles = $action->getRoleFilter();
         $role_filter->setValue(array_shift($filter_roles));
         $role_filter->setMultiValues($action->getRoleFilter());
+        $role_filter->setInfo($this->getPluginObject()->txt('form_role_filter_info'));
         $action_perm->addSubItem($role_filter);
 
         // Avaliability settings
