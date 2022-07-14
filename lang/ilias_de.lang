@@ -8,8 +8,9 @@ form_rolt#:#Rollenvorlage
 form_action#:#Aktion
 action_add#:#Rechte hinzufügen
 action_remove#:#Rechte entfernen
-form_action_templates#:#Rollenvorlagen anpassen
+form_action_templates#:#Rechtevorgaben anpassen
 form_role_filter#:#Rollenfilter
+form_role_filter_info#:#Rollenbezeichnungen folgen dem Muster il_[Obj. Type]_[Role]_[Obj. Ref. ID]. Geben Sie hier Teile einer Bezeichnung ein, um nur bestimme Rollen zu ändern, z.B. "crs" für Rollen von Kursen, "admin" für Administrator-Rollen, oder "crs_admin" für Kursadministratoren.
 btn_show_affected#:#Zeige Anzahl der zu ändernden Objekte
 table_col_type#:#Objekttyp
 table_col_num#:#Anzahl der zu ändernden Objekte
