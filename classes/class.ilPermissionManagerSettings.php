@@ -23,7 +23,11 @@ class ilPermissionManagerSettings
         $this->setLogLevel((int) $this->getStorage()->get('log_level', (string) $this->log_level));
 
         $ser_action = $this->getStorage()->get('action', serialize(new ilPermissionManagerAction()));
-        $this->setAction(unserialize($ser_action));
+        try {
+            $this->setAction(unserialize($ser_action));
+        } catch (Error $e) {
+            $this->setAction(new ilPermissionManagerAction());
+        }
     }
 
     protected function getStorage() : ilSetting
