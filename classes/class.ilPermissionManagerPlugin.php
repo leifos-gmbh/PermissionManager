@@ -39,8 +39,14 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
     /**
      * drop database tables and delete ilSetting entrys
      */
-    protected function uninstallCustom() : void
+    public function uninstall() : bool
     {
+        global $DIC;
+        $db = $DIC->database();
+
+        $db->manipulate("DELETE FROM settings WHERE module = 'lfpm';");
+
+        return parent::uninstall();
     }
 
     public function getPluginName() : string

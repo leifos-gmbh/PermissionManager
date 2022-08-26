@@ -24,7 +24,3 @@ German, English
 6. When ILIAS updates the plugin, hit the "Action" button and select "Activate" that will appear instead of the "Update" link.
 
 7. Hit the "Action" button and select "Refresh Languages" to update the language-files.
-
-### Remarks for upgrading from previous versions
-After upgrading to ILIAS 8 and this version of the plugin, when using this plugin for the first time after the upgrade, your settings 
-for the plugin might get reset. In this case, please redo and save your configuration.

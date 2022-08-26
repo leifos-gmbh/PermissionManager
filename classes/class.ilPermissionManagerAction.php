@@ -136,7 +136,7 @@ class ilPermissionManagerAction
     /**
      * Magic
      */
-    public function __wakeup() : void
+    public function __unserialize(array $data) : void
     {
         global $DIC;
 
@@ -145,6 +145,19 @@ class ilPermissionManagerAction
         $this->objDefinition = $DIC['objDefinition'];
         $this->rbacadmin = $DIC->rbac()->admin();
         $this->rbacreview = $DIC->rbac()->review();
+
+        $this->rep_node = (int) $data["\0ilPermissionManagerAction\0rep_node"];
+        $this->type_filter = $data["\0ilPermissionManagerAction\0type_filter"];
+        $this->advanced_type_filter = (int) $data["\0ilPermissionManagerAction\0advanced_type_filter"];
+        $this->template_id = (int) $data["\0ilPermissionManagerAction\0template_id"];
+        $this->action_type = (int) $data["\0ilPermissionManagerAction\0action_type"];
+        $this->action = (int) $data["\0ilPermissionManagerAction\0action"];
+        $this->change_role_templates = (bool) $data["\0ilPermissionManagerAction\0change_role_templates"];
+        $this->role_filter = $data["\0ilPermissionManagerAction\0role_filter"];
+        $this->timing_start = (int) $data["\0ilPermissionManagerAction\0timing_start"];
+        $this->timing_end = (int) $data["\0ilPermissionManagerAction\0timing_end"];
+        $this->timing_visibility = (bool) $data["\0ilPermissionManagerAction\0timing_visibility"];
+        $this->reset_timings = (bool) $data["\0ilPermissionManagerAction\0reset_timings"];
     }
 
     /**
