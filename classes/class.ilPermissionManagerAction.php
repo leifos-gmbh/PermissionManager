@@ -324,7 +324,7 @@ class ilPermissionManagerAction
 
     public function getTimingVisibility() : int
     {
-        return ($this->timing_visibility ?? 0);
+        return (int) ($this->timing_visibility ?? 0);
     }
 
     public function setTimingVisibility(int $a_stat)
