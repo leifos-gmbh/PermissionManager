@@ -30,6 +30,9 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
     {
         global $DIC;
 
+        if (!ilLoggerFactory::getInstance()->isLoggingEnabled()) {
+            return;
+        }
         // set configured log level
         foreach ($DIC->logger()->lfpm()->getLogger()->getHandlers() as $handler) {
             $handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
