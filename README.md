@@ -1,10 +1,10 @@
 # PermissionManager
 
 **Minimum ILIAS Version:**
-8.0
+9.0
 
 **Maximum ILIAS Version:**
-8.99
+9.99
 
 **Responsible Developer:**
 Stefan Meyer meyer@leifos.de

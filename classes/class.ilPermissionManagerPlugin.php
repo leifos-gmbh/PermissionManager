@@ -32,7 +32,9 @@ class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 
         // set configured log level
         foreach ($DIC->logger()->lfpm()->getLogger()->getHandlers() as $handler) {
-            $handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
+            if (!$handler instanceof \Monolog\Handler\NullHandler) {
+                $handler->setLevel(ilPermissionManagerSettings::getInstance()->getLogLevel());
+            }
         }
     }
 
