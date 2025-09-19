@@ -495,8 +495,10 @@ class ilPermissionManagerAction
         $this->logger->debug('New operations for ' . $node['title']);
         $this->logger->dump($new_permissions, ilLogLevel::DEBUG);
 
-        $this->rbacadmin->revokePermission((int) $node['child'], $role['obj_id']);
-        $this->rbacadmin->grantPermission($role['obj_id'], $new_permissions, (int) $node['child']);
+        if ($role['parent'] != ROLE_FOLDER_ID) {
+            $this->rbacadmin->revokePermission((int) $node['child'], $role['obj_id']);
+            $this->rbacadmin->grantPermission($role['obj_id'], $new_permissions, (int) $node['child']);
+        }
     }
 
     private function updateContainer(array $a_node) : void
