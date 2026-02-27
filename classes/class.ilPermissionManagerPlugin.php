@@ -1,11 +1,9 @@
-<?php declare(strict_types=1);
+<?php
 
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-/**
- * Class lfPermissionManagerPlugin
- * @author  Stefan Meyer <smeyer.ilias@gmx.de>
- */
+declare(strict_types=1);
+
 class ilPermissionManagerPlugin extends ilUserInterfaceHookPlugin
 {
     private const PLUGIN_ID = 'lfpm';

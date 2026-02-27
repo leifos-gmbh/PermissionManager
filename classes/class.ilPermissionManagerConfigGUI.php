@@ -1,11 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
 /* Copyright (c) 1998-2013 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-/**
- * Permission manager configuration
- * @author Stefan Meyer <smeyer.ilias@gmx.de>
- * @ilCtrl_IsCalledBy ilPermissionManagerConfigGUI: ilObjComponentSettingsGUI
- */
+declare(strict_types=1);
+
 class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 {
     private ilObjectDefinition $objDefinition;

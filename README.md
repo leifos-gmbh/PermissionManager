@@ -1,10 +1,10 @@
 # PermissionManager
-
+## General Information
 **Minimum ILIAS Version:**
-9.0
+10.0
 
 **Maximum ILIAS Version:**
-9.99
+10.99
 
 **Responsible Developer:**
 Stefan Meyer meyer@leifos.de
@@ -12,15 +12,17 @@ Stefan Meyer meyer@leifos.de
 **Supported Languages:**
 German, English
 
-### Quick Installation Guide
-1. Copy the content of this folder in <ILIAS_directory>/Customizing/global/plugins/Services/UIComponent/UserInterfaceHook/PermissionManager
-
-2. Access to ILIAS and go to the administration page.
-
-3. Select "Plugins" in the menu on the right.
-
-5. Look for the PermissionManager plugin in the table, hit the "Action" button and select "Update".
-
-6. When ILIAS updates the plugin, hit the "Action" button and select "Activate" that will appear instead of the "Update" link.
-
-7. Hit the "Action" button and select "Refresh Languages" to update the language-files.
+## Installation
+Navigate to the ILIAS root directory and create the target directory:
+```shell
+mkdir -p public/Customizing/global/plugins/Services/UIComponent/UserInterfaceHook
+```
+Navigate to the UserInterfaceHook-Folder:
+```shell
+cd public/Customizing/global/plugins/Services/UIComponent/UserInterfaceHook
+```
+Clone the project from github:
+```shell
+git clone -b release_10 https://github.com/leifos-gmbh/PermissionManager.git
+```
+Finally update and acitvate the PermissionManager plugin in the ILIAS plugin administration.
