@@ -4,6 +4,9 @@
 
 declare(strict_types=1);
 
+/**
+ * @ilCtrl_IsCalledBy ilPermissionManagerConfigGUI : ilObjComponentSettingsGUI
+ */
 class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
 {
     private ilObjectDefinition $objDefinition;
