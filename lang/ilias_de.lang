@@ -1,13 +1,32 @@
 tab_configure#:#Konfiguration
 form_tab_settings#:#Einstellungen
-form_rep_node#:#Startpunkt im Magazin (ref_id)
-form_rep_node_info#:#Wählen sie den Startpunkt im Magazin, unterhalb dem die folgenden Rechteänderungen durchgeführt werden sollen.
+form_rep_node#:#Ref_ID
+form_rep_node_info#:#Geben Sie die Ref_id des Objekts ein, unterhalb dessen die folgenden Anpassungen durchgeführt werden sollen.
+radio_area#:#Bereich
+radio_area_option_subtree#:#Anpassung nur in einem Teilbaum
+radio_area_option_whole_tree#:#Anpassung im gesamten Magazin (Default)
+radio_action#:#Aktion
+radio_action_option_adjust_perm#:#Rechte der Objekte anpassen (Default)
+radio_action_option_adjust_availability#:#Verfügbarkeit der Objekte anpassen
+checkbox_start_time#:#Startzeiten
+checkbox_end_time#:#Endzeiten
+checkbox_visibility#:#Sichtbarkeit
+radio_adjustment_start_time#:#Anpassung Startzeit
+radio_adjustment_start_time_option_remove#:#Startzeit aller Objekte entfernen
+radio_adjustment_start_time_option_force#:#Startzeit für alle Objekte erzwingen
+radio_adjustment_end_time#:#Anpassung Endzeit
+radio_adjustment_end_time_option_remove#:#Endzeit aller Objekte entfernen
+radio_adjustment_end_time_option_force#:#Endzeit für alle Objekte erzwingen
+radio_adjustment_visibility#:#Anpassung Sichtbarkeit
+radio_adjustment_visibility_option_remove#:#Sichtbarkeit entfernen
+radio_adjustment_visibility_option_force#:#Sichtbarkeit erzwingen
 form_type_filter#:#Objekte-Filter
 form_type_adv_filter#:#Erweiterter Objekte-Filter
 form_rolt#:#Rollenvorlage
+form_rolt_byline#:#Wählen Sie die Rollenvorlage aus, deren Rechte angewendet werden sollen.
 form_action#:#Aktion
-action_add#:#Rechte hinzufügen
-action_remove#:#Rechte entfernen
+action_add#:#Rechte entsprechend der ausgewählten Rollenvorlage hinzufügen
+action_remove#:#Rechte entsprechend der ausgewählten Rollenvorlage entfernen
 form_action_templates#:#Rechtevorgaben anpassen
 form_role_filter#:#Rollenfilter
 form_role_filter_info#:#Rollenbezeichnungen folgen dem Muster il_[Obj. Type]_[Role]_[Obj. Ref. ID]. Geben Sie hier Teile einer Bezeichnung ein, um nur bestimme Rollen zu ändern, z.B. "crs" für Rollen von Kursen, "admin" für Administrator-Rollen, oder "crs_admin" für Kursadministratoren.
@@ -24,7 +43,6 @@ table_summary_title#:#Übersicht der zu ändernenden Objekte
 executed_permission_update#:#Die Rechteänderungen wurden durchgeführt.
 form_tab_settings_loglevel#:#Log-Level
 action_type#:#Art der Änderung
-action_type_adjust_perm#:#Objekt-Rechte anpassen
-action_type_adjust_availability#:#Objekt-Verfügbarkeit anpassen
-reset_timings#:#Zeitvorgaben ausschalten
-reset_timings_info#:#Für die ausgewählten Objekte wird der Status "Verfügbarkeit ausgeschaltet" gesetzt.
+section_protocolling#:#Protokollierung
+section_object_type_restriction#:#Einschränkungen auf Objekttypen und Objekte
+section_usage_in_magazine#:#Anwendungsbereich im Magazin

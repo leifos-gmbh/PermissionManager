@@ -40,8 +40,16 @@ class ilPermissionManagerAction
     private array $role_filter = [];
     private int $timing_start = 0;
     private int $timing_end = 0;
-    private bool $timing_visibility = false;
-    private bool $reset_timings = false;
+    private bool $reset_start_time = false;
+    private bool $reset_end_time = false;
+    private bool $visibility_selected = false;
+    private bool $starttime_selected = false;
+    private bool $endtime_selected = false;
+    private bool $remove_visibility = false;
+    private bool $force_visibility = false;
+    private string $starttime_selected_option = '';
+    private string $endtime_selected_option = '';
+    private string $visibility_selected_option = '';
 
     private ilTree $tree;
     private ilLogger $logger;
@@ -105,13 +113,7 @@ class ilPermissionManagerAction
         $this->template_id = $a_template_id;
     }
 
-    public function setResetTimingsEnabled(bool $a_status) : void
-    {
-        $this->reset_timings = $a_status;
-    }
-
     /**
-     * Magic
      * @return string[]
      */
     public function __sleep() : array
@@ -127,14 +129,19 @@ class ilPermissionManagerAction
             'role_filter',
             'timing_start',
             'timing_end',
-            'timing_visibility',
-            'reset_timings'
+            'endtime_selected',
+            'starttime_selected',
+            'visibility_selected',
+            'visibility_selected_option',
+            'starttime_selected_option',
+            'endtime_selected_option',
+            'reset_start_time',
+            'reset_end_time',
+            'force_visibility',
+            'remove_visibility'
         );
     }
 
-    /**
-     * Magic
-     */
     public function __unserialize(array $data) : void
     {
         global $DIC;
@@ -155,8 +162,16 @@ class ilPermissionManagerAction
         $this->role_filter = $data["\0ilPermissionManagerAction\0role_filter"];
         $this->timing_start = (int) $data["\0ilPermissionManagerAction\0timing_start"];
         $this->timing_end = (int) $data["\0ilPermissionManagerAction\0timing_end"];
-        $this->timing_visibility = (bool) $data["\0ilPermissionManagerAction\0timing_visibility"];
-        $this->reset_timings = (bool) $data["\0ilPermissionManagerAction\0reset_timings"];
+        $this->endtime_selected = (bool) $data["\0ilPermissionManagerAction\0endtime_selected"];
+        $this->starttime_selected = (bool) $data["\0ilPermissionManagerAction\0starttime_selected"];
+        $this->visibility_selected = (bool) $data["\0ilPermissionManagerAction\0visibility_selected"];
+        $this->visibility_selected_option = $data["\0ilPermissionManagerAction\0visibility_selected_option"];
+        $this->starttime_selected_option = $data["\0ilPermissionManagerAction\0starttime_selected_option"];
+        $this->endtime_selected_option = $data["\0ilPermissionManagerAction\0endtime_selected_option"];
+        $this->reset_start_time = (bool) $data["\0ilPermissionManagerAction\0reset_start_time"];
+        $this->reset_end_time = (bool) $data["\0ilPermissionManagerAction\0reset_end_time"];
+        $this->force_visibility = (bool) $data["\0ilPermissionManagerAction\0force_visibility"];
+        $this->remove_visibility = (bool) $data["\0ilPermissionManagerAction\0remove_visibility"];
     }
 
     /**
@@ -336,22 +351,37 @@ class ilPermissionManagerAction
 
         $activation = new ilObjectActivation();
 
-        if ($this->resetTimingsEnabled()) {
+        if ($this->resetStartTimeEnabled() && $this->resetEndTimeEnabled()) {
             $activation->setTimingType(ilObjectActivation::TIMINGS_DEACTIVATED);
             $activation->update((int) $node['child']);
             return;
         }
 
         $activation->setTimingType(ilObjectActivation::TIMINGS_ACTIVATION);
-        $activation->setTimingStart($this->getTimingStart());
-        $activation->setTimingEnd($this->getTimingEnd());
-        $activation->toggleVisible($this->getTimingVisibility());
+        $activation->setTimingStart($this->reset_start_time ? null : $this->getTimingStart());
+        $activation->setTimingEnd($this->reset_end_time ? null : $this->getTimingEnd());
+        $activation->toggleVisible($this->getForceVisibilityEnabled());
         $activation->update((int) $node['child']);
     }
 
-    public function resetTimingsEnabled() : bool
+    public function resetStartTimeEnabled() : bool
     {
-        return ($this->reset_timings ?? false);
+        return ($this->reset_start_time ?? false);
+    }
+
+    public function setResetStartTimeEnabled(bool $a_status) : void
+    {
+        $this->reset_start_time = $a_status;
+    }
+
+    public function resetEndTimeEnabled() : bool
+    {
+        return ($this->reset_end_time ?? false);
+    }
+
+    public function setResetEndTimeEnabled(bool $a_status) : void
+    {
+        $this->reset_end_time = $a_status;
     }
 
     public function getTimingStart() : int
@@ -374,16 +404,86 @@ class ilPermissionManagerAction
         $this->timing_end = $a_end;
     }
 
-    public function getTimingVisibility() : bool
+    public function getRemoveVisibilityEnabled() : bool
     {
-        return (bool) ($this->timing_visibility ?? false);
+        return ($this->remove_visibility ?? false);
     }
 
-    public function setTimingVisibility(bool $a_stat) : void
+    public function setRemoveVisibilityEnabled(bool $value) : void
     {
-        $this->timing_visibility = $a_stat;
+        $this->remove_visibility = $value;
     }
 
+    public function getForceVisibilityEnabled() : bool
+    {
+        return ($this->force_visibility ?? false);
+
+    }
+
+    public function setForceVisibilityEnabled(bool $value) : void
+    {
+        $this->force_visibility = $value;
+    }
+
+    public function setVisibilitySelected(bool $value): void
+    {
+        $this->visibility_selected = $value;
+    }
+
+    public function getVisibilitySelected() : bool
+    {
+        return $this->visibility_selected;
+    }
+
+    public function setStarttimeSelected(bool $value): void
+    {
+        $this->starttime_selected = $value;
+    }
+
+    public function getStarttimeSelected() : bool
+    {
+        return $this->starttime_selected;
+    }
+
+    public function setEndtimeSelected(bool $value): void
+    {
+        $this->endtime_selected = $value;
+    }
+
+    public function getEndtimeSelected() : bool
+    {
+        return $this->endtime_selected;
+    }
+
+    public function setStarttimeSelectedOpiton(string $value): void
+    {
+        $this->starttime_selected_option = $value;
+    }
+
+    public function getStarttimeSelectedOpiton(): string
+    {
+        return $this->starttime_selected_option;
+    }
+
+    public function setEndtimeSelectedOpiton(string $value): void
+    {
+        $this->endtime_selected_option = $value;
+    }
+
+    public function getEndtimeSelectedOpiton(): string
+    {
+        return $this->endtime_selected_option;
+    }
+
+    public function setVisibilitySelectedOpiton(string $value): void
+    {
+        $this->visibility_selected_option = $value;
+    }
+
+    public function getVisibilitySelectedOpiton(): string
+    {
+        return $this->visibility_selected_option;
+    }
 
     private function applyRoleFilter(array $a_node) : array
     {

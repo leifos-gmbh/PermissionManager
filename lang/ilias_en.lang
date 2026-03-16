@@ -1,13 +1,32 @@
 tab_configure#:#Configuration
 form_tab_settings#:#Settings
-form_rep_node#:#Starting node in the Repository (ref_id)
-form_rep_node_info#:#Choose a starting point from the repository. Changes will only applied below this node.
+form_rep_node#:#Ref_ID
+form_rep_node_info#:#Enter the Ref_id of the object under which the following adjustments are to be made.
+radio_area#:#Area
+radio_area_option_subtree#:#Adjustment only in one subtree
+radio_area_option_whole_tree#:#Adjustment throughout the magazine (default)
+radio_action#:#Action
+radio_action_option_adjust_perm#:#Change Object Permissions (Default)
+radio_action_option_adjust_availability#:#Change Object Availability
+checkbox_start_time#:#Starttime
+checkbox_end_time#:#Endtime
+checkbox_visibility#:#Visibility
+radio_adjustment_start_time#:#Adjustment Starttime
+radio_adjustment_start_time_option_remove#:#Remove starttime of all objects
+radio_adjustment_start_time_option_force#:#Force starttime of all objects
+radio_adjustment_end_time#:#Adjustment Endtime
+radio_adjustment_end_time_option_remove#:#Remove endtime of all objects
+radio_adjustment_end_time_option_force#:#Force endtime of all objects
+radio_adjustment_visibility#:#Adjust visibility
+radio_adjustment_visibility_option_remove#:#Remove visibility
+radio_adjustment_visibility_option_force#:#Force visibility
 form_type_filter#:#Object Type Filter
 form_type_adv_filter#:#Advanced Object Filter
 form_rolt#:#Role Template
+form_rolt_byline#:#Select the role template whose permissions you want to apply.
 form_action#:#Action
-action_add#:#Add Permissions
-action_remove#:#Remove Permissions
+action_add#:#Add permissions based on the selected role template
+action_remove#:#Remove permissions based on the selected role template
 form_action_templates#:#Adapt Default Permissions
 form_role_filter#:#Role Filter
 form_role_filter_info#:#Role names follow the pattern il_[Obj. Type]_[Role]_[Obj. Ref. ID]. Enter here parts of the name to filter for specific roles, e.g. "crs" to only change roles of courses, "admin" to only change adminsitrator roles, or "crs_admin" to only change course administrators.
@@ -24,7 +43,6 @@ table_summary_title#:#Overview Changed Objects
 executed_permission_update#:#Permission changes were applied.
 form_tab_settings_loglevel#:#Log-Level
 action_type#:#Kind of Modification
-action_type_adjust_perm#:#Change Object Permissions
-action_type_adjust_availability#:#Change Object Availability
-reset_timings#:#Timings Disabled
-reset_timings_info#:#Set the "Timings" status to disabled for selected objects.
+section_protocolling#:#Protocolling
+section_object_type_restriction#:#Object and Object Type Restriction
+section_usage_in_magazine#:#Applied in Area of Magazine
