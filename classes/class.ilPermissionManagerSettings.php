@@ -24,7 +24,7 @@ class ilPermissionManagerSettings
         $ser_action = $this->getStorage()->get('action', serialize(new ilPermissionManagerAction()));
         try {
             $this->setAction(unserialize($ser_action));
-        } catch (Error $e) {
+        } catch (Exception $e) {
             $this->setAction(new ilPermissionManagerAction());
         }
     }
