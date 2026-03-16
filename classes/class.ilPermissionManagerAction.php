@@ -360,7 +360,12 @@ class ilPermissionManagerAction
         $activation->setTimingType(ilObjectActivation::TIMINGS_ACTIVATION);
         $activation->setTimingStart($this->reset_start_time ? null : $this->getTimingStart());
         $activation->setTimingEnd($this->reset_end_time ? null : $this->getTimingEnd());
-        $activation->toggleVisible($this->getForceVisibilityEnabled());
+        if ($this->getForceVisibilityEnabled()) {
+            $activation->toggleVisible(true);
+        }
+        if ($this->getRemoveVisibilityEnabled()) {
+            $activation->toggleVisible(false);
+        }
         $activation->update((int) $node['child']);
     }
 
