@@ -163,6 +163,9 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $adv_filter->setOptions(ilPermissionManagerAction::getAdvancedTypeFilterOptions());
         $adv_filter->setRequired(true);
 
+        # ADJUSTMENTS
+        $section_adjustments = new ilFormSectionHeaderGUI();
+        $section_adjustments->setTitle($this->getPluginObject()->txt('section_adjustments'));
         $options_add = new ilRadioOption($this->getPluginObject()->txt('action_add'), (string) ilPermissionManagerAction::ACTION_ADD);
         $options_remove = new ilRadioOption($this->getPluginObject()->txt('action_remove'), (string) ilPermissionManagerAction::ACTION_REMOVE);
         $action_ar = new ilRadioGroupInputGUI($this->getPluginObject()->txt('form_action'), 'action');
@@ -260,6 +263,7 @@ class ilPermissionManagerConfigGUI extends ilPluginConfigGUI
         $form->addItem($section_object_type_restriction);
         $form->addItem($type_filter);
         $form->addItem($adv_filter);
+        $form->addItem($section_adjustments);
         $form->addItem($action_type);
         $form->addItem($section_logging);
         $form->addItem($level);

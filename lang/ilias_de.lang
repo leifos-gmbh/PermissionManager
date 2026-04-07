@@ -20,8 +20,8 @@ radio_adjustment_end_time_option_force#:#Endzeit für alle Objekte erzwingen
 radio_adjustment_visibility#:#Anpassung Sichtbarkeit
 radio_adjustment_visibility_option_remove#:#Sichtbarkeit entfernen
 radio_adjustment_visibility_option_force#:#Sichtbarkeit erzwingen
-form_type_filter#:#Objekte-Filter
-form_type_adv_filter#:#Erweiterter Objekte-Filter
+form_type_filter#:#Anzupassende Objekttypen
+form_type_adv_filter#:#Anzupassende Objekte
 form_rolt#:#Rollenvorlage
 form_rolt_byline#:#Wählen Sie die Rollenvorlage aus, deren Rechte angewendet werden sollen.
 form_action#:#Aktion
@@ -46,3 +46,4 @@ action_type#:#Art der Änderung
 section_protocolling#:#Protokollierung
 section_object_type_restriction#:#Einschränkungen auf Objekttypen und Objekte
 section_usage_in_magazine#:#Anwendungsbereich im Magazin
+section_adjustments#:#Art der Anpassung
